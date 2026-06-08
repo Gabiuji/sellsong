@@ -1,0 +1,64 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  username  String   @unique
+  email     String   @unique
+  password  String   
+  avatarUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts     Post[]
+  favorites FavoriteTrack[]
+  
+  following Follows[] @relation("follower")
+  followers Follows[] @relation("following")
+}
+
+model Follows {
+  followerId  String
+  follower    User   @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User   @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+}
+
+model Post {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  spotifyTrackId String
+  trackName      String
+  artistName     String
+  albumCoverUrl  String
+  previewUrl     String?  
+  
+  genre          String   
+  description    String   
+  
+  createdAt      DateTime @default(now())
+}
+
+model FavoriteTrack {
+  id             String @id @default(uuid())
+  userId         String
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  spotifyTrackId String
+  trackName      String
+  artistName     String
+  albumCoverUrl  String
+  position       Int    
+
+  @@unique([userId, position]) 
+}
