@@ -2,15 +2,21 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import { PrismaClient } from "@prisma/client";
+import authRoutes from "./routes/authRouter.js";
 
 const app = express();
 const prisma = new PrismaClient();
 
 const PORT = process.env.PORT || 3001;
 
+// Middlewares Globais
 app.use(cors());
 app.use(express.json());
 
+// Rotas da Aplicação
+app.use("/api/auth", authRoutes); // Conecta o roteador prefixando com /api/auth
+
+// Rota de Teste (Healthcheck)
 app.get("/api/health", async (req, res) => {
   try {
     const userCount = await prisma.user.count();
