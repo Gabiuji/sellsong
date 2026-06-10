@@ -7,58 +7,49 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// 1. MODELO DE USUÁRIO (Atualizado com as relações)
 model User {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   username  String   @unique
   email     String   @unique
-  password  String   
-  avatarUrl String?
+  password  String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
+  // Relações virtuais do Prisma (não viram colunas físicas no banco)
   posts     Post[]
-  favorites FavoriteTrack[]
-  
-  following Follows[] @relation("follower")
-  followers Follows[] @relation("following")
+  followers Follow[] @relation("UserFollowers")
+  following Follow[] @relation("UserFollowing")
 }
 
-model Follows {
-  followerId  String
-  follower    User   @relation("follower", fields: [followerId], references: [id], onDelete: Cascade)
-  followingId String
-  following   User   @relation("following", fields: [followingId], references: [id], onDelete: Cascade)
-
-  @@id([followerId, followingId])
-}
-
+// 2. MODELO DE POSTS (Resenhas Musicais)
 model Post {
-  id             String   @id @default(uuid())
-  userId         String
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  spotifyTrackId String
-  trackName      String
-  artistName     String
-  albumCoverUrl  String
-  previewUrl     String?  
-  
-  genre          String   
-  description    String   
-  
-  createdAt      DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  spotifyTrackId String   // ID único da música que vem da API do Spotify
+  trackName     String   // Nome da música (guardado para busca rápida no feed)
+  artistName    String   // Nome do artista/banda
+  albumCover    String   // URL da imagem da capa do álbum
+  rating        Int      // Nota de 1 a 5 estrelas dado pelo usuário
+  review        String?  // Texto opcional com a opinião do usuário
+  createdAt     DateTime @default(now())
+
+  // Chave estrangeira ligando o post ao autor
+  userId        Int
+  author        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model FavoriteTrack {
-  id             String @id @default(uuid())
-  userId         String
-  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  spotifyTrackId String
-  trackName      String
-  artistName     String
-  albumCoverUrl  String
-  position       Int    
+// 3. MODELO DE SEGUIDORES (Tabela intermediária para a rede social)
+model Follow {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
 
-  @@unique([userId, position]) 
+  // Quem está seguindo
+  followerId  Int
+  follower    User     @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+
+  // Quem está sendo seguido
+  followingId Int
+  following   User     @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  // Garante que um usuário não siga a mesma pessoa duas vezes
+  @@unique([followerId, followingId])
 }
