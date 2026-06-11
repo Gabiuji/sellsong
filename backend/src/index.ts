@@ -5,6 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import authRoutes from "./routes/authRouter.js";
 import spotifyRoutes from "./routes/spotifyRouter.js";
 import postRoutes from "./routes/postRouter.js";
+import followRoutes from "./routes/followRouter.js";
 
 const app = express();
 const prisma = new PrismaClient();
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use("/api/auth", authRoutes); // Conecta o roteador prefixando com /api/auth
 app.use("/api/spotify", spotifyRoutes); // Conecta o roteador prefixando com /api/spotify
 app.use("/api/posts", postRoutes); // Conecta o roteador prefixando com /api/posts
+app.use("/api/follow", followRoutes); // Conecta o roteador prefixando com /api/follow
 
 // Rota de Teste (Healthcheck)
 app.get("/api/health", async (req, res) => {
