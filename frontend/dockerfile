@@ -1,0 +1,20 @@
+# 1. Usa a imagem leve do Node 24 (Alpine)
+FROM node:24-alpine
+
+# 2. Define a pasta onde o app vai morar no container
+WORKDIR /app
+
+# 3. Copia os arquivos de pacotes para o cache do Docker
+COPY package*.json ./
+
+# 4. Instala as dependências do projeto
+RUN npm install
+
+# 5. Copia o resto dos arquivos do front
+COPY . .
+
+# 6. Expõe a porta padrão de desenvolvimento do Vite
+EXPOSE 5173
+
+# 7. Roda o servidor do Vite com a flag --host para permitir conexões externas
+CMD ["npm", "run", "dev", "--", "--host"]

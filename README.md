@@ -1,75 +1,64 @@
-# Diário de Progresso — SellSong
+# 📈 Diário de Progresso — SellSong
 
 Este arquivo registra a evolução técnica, correções de arquitetura e funcionalidades implementadas no **SellSong**.
 
 ---
 
-## [11/06/2026] - Módulo de Amizades/Seguidores e Início do Frontend
+## 🛠️ [11/06/2026] — Inicialização e Dockerização Completa do Frontend (React + Vite)
 
-- [x] **Módulo de Amizades (Follows):** Desenvolver o controller e rotas protegidas para permitir que usuários sigam/parem de seguir uns aos outros.
+O objetivo principal de hoje foi inaugurar a interface visual da aplicação e acoplá-la ao ecossistema de containers, alcançando um ambiente de desenvolvimento 100% orquestrado e isolado.
 
-## [10/06/2026] — Modelagem Avançada, Middleware de Segurança e Conteinerização da API
+### ✨ O que foi implementado:
 
-O foco de hoje foi descentralizar a execução híbrida da aplicação, migrando o servidor Express inteiramente para dentro do ecossistema Docker, expandindo a modelagem de dados para sustentar as interações de rede social e aplicando barreiras de autenticação com middlewares.
+- **Core do Frontend:** Inicialização do projeto utilizando **React**, **TypeScript** e **Vite** como empacotador de alta performance na pasta `frontend/`.
+- **Estilização e Componentes Visuais:** Integração global do **Bootstrap v5** e **Bootstrap Icons** para a construção de interfaces responsivas e limpas.
+- **Dockerização do Frontend:** Criação de um `Dockerfile` baseado em Node 24 Alpine dedicado para o ambiente SPA do Vite, expondo a porta `5173`.
+- **Orquestração Multicluster (Docker Compose):** Inclusão do serviço de frontend no `docker-compose.yml`, unificando a inicialização do Banco de Dados (PostgreSQL), da API (Express) e da Interface (React) com um único comando.
+- **Hot Reload Distribuído:** Configuração fina do mecanismo de HMR (_Hot Module Replacement_) e pooling de arquivos no `vite.config.ts`, permitindo que qualquer alteração de código feita no editor reflita instantaneamente no navegador, mesmo rodando de dentro do container Linux.
+- **Camada de Serviço HTTP (Axios):** Criação da instância centralizada do Axios em `src/services/api.ts` pré-configurada com interceptors para injeção automática de tokens JWT do `localStorage` nas requisições para a porta `3000`.
 
-### O que foi implementado:
+### 🐛 Desafios Superados & Decisões de Arquitetura:
 
-- **Expansão do Banco de Dados (Relacionamentos):** Atualização do `schema.prisma` com a criação do modelo de `Post` (relacionamento $1 \rightarrow N$ com usuários para resenhas de músicas) e o modelo de `Follow` (auto-relacionamento muitos-para-muitos com restrição única de tupla para gerenciar a rede de seguidores).
-- **Middleware de Autenticação JWT:** Desenvolvimento do `authMiddleware` para interceptação estrita de cabeçalhos HTTP (`Authorization: Bearer <token>`), validação de assinaturas de sessão e injeção dinâmica do escopo de usuário nas requisições.
-- **Módulo de Publicações (Posts):** Criação das rotas e lógica do `postController` para salvamento de resenhas associadas a metadados da API do Spotify e estruturação do feed global público.
+1. **Resolução de Escopo do Vite no Docker:** Ajuste no argumento de execução do container adicionando a flag `--host` no `CMD`, permitindo que o Vite responda a requisições externas ao container e fique acessível pelo navegador da máquina hospedeira em `localhost:5173`.
+2. **Sincronização de Tipagem do TypeScript:** Resolução do erro em lote no `App.tsx` (`Cannot find module 'react'`) através da execução assistida do `npm install` no escopo do container e reinicialização do servidor de tipos (TS Server) no editor.
+3. **Mapeamento de Volumes Isolados:** Configuração de volumes anônimos para a pasta `node_modules` no frontend, impedindo conflitos de dependências entre o sistema operacional local e os pacotes compilados para o Linux do Docker.
+
+---
+
+## 🛠️ [10/06/2026] — Modelagem Avançada, Middleware de Segurança e Conteinerização da API
+
+O foco deste dia foi descentralizar a execução híbrida da aplicação, migrando o servidor Express inteiramente para dentro do ecossistema Docker, expandindo a modelagem de dados e aplicando barreiras de autenticação com middlewares.
+
+### ✨ O que foi implementado:
+
+- **Expansão do Banco de Dados (Relacionamentos):** Atualização do `schema.prisma` com a criação do modelo de `Post` e o modelo de `Follow` (auto-relacionamento muitos-para-muitos).
+- **Middleware de Autenticação JWT:** Desenvolvimento do `authMiddleware` para interceptação estrita de cabeçalhos HTTP (`Authorization: Bearer <token>`).
+- **Módulo de Publicações (Posts) & Amizades (Follows):** Criação das rotas e lógica do `postController` e `followController` para gerenciamento de resenhas e conexões sociais (sistema de _toggle_ para seguir/unfollow).
 - **Conteinerização Completa do Backend:** Criação do `Dockerfile` multiestágio baseado em imagens Alpine do Node 24 para isolamento total da API Express.
-- **Orquestração Segura via Docker Compose:** Configuração da leitura de variáveis de ambiente dinâmicas usando `env_file`, removendo por completo dados sensíveis de credenciais (Banco e chaves do Spotify) da estrutura exposta do `docker-compose.yml`.
+- **Orquestração Segura via Docker Compose:** Configuração da leitura de variáveis de ambiente dinâmicas usando `env_file`.
 
-### Desafios Superados & Decisões de Arquitetura:
+### 🐛 Desafios Superados & Decisões de Arquitetura:
 
-1. **Resolução de Escopo de Rede Interna (Docker Swarm/Bridge):** Correção do erro clássico `P1001 (Can't reach database server)` ajustando a string de conexão `DATABASE_URL` no arquivo `.env`. Substituiu-se a referência física de `localhost` pelo nome lógico do serviço do banco de dados (`postgres_db`), alinhando o roteamento DNS interno dos contêineres do Docker Compose.
-2. **Sincronização de Banco Isolado:** Uso do utilitário `docker compose exec` injetando flags de ambiente explícitas para rodar a esteira de `prisma migrate deploy` e criar a estrutura relacional de tabelas de forma direta no PostgreSQL ativo no Docker.
-3. **Persistência e Feedback Visual:** Integração bem-sucedida do banco de dados orquestrado a extensões visuais de gerenciamento DB internas do VS Code, validando a persistência estrutural de dados após ciclos de reboots dos contêineres.
-
----
-
-## [09/06/2026] — Segurança, Autenticação JWT e Integração com Spotify
-
-O foco principal deste dia foi transformar a infraestrutura básica em uma API de rede social funcional, estabelecendo segurança no tráfego de dados e conectando o ecossistema do SellSong à base de dados oficial do Spotify.
-
-### O que foi implementado:
-
-- **Módulo de Autenticação Segura:** Criação das rotas e controllers de Cadastro (`POST /api/auth/register`) e Login (`POST /api/auth/login`).
-- **Criptografia de Senhas:** Integração da biblioteca `bcrypt` para aplicar hashing seguro (Salt de 10 rounds) nas senhas dos usuários antes do salvamento no PostgreSQL.
-- **Emissão de Tokens de Sessão:** Implementação de tokens **JWT (JSON Web Tokens)** no fluxo de login para autenticação stateless de rotas protegidas.
-- **Consumo da API do Spotify:** Criação de um serviço isolado (`spotifyService`) utilizando o fluxo _Client Credentials_ para autenticação com o Spotify Developer Portal.
-- **Mecanismo de Cache de Token:** Lógica em memória para controlar a expiração do token do Spotify (evitando requisições redundantes de autenticação à API externa).
-- **Endpoint de Busca Musical:** Rota (`GET /api/spotify/search`) que filtra o catálogo do Spotify e devolve um JSON limpo e estruturado ready para o consumo do Frontend.
-
-### Desafios Superados & Decisões de Arquitetura:
-
-1. **Resolução de Escopo Estrito (ESM):** Correção do erro de compilação do TypeScript referente à flag `--moduleResolution NodeNext`, aplicando explicitamente as extensões `.js` nos caminhos de importação relativos de rotas e controllers locais.
-2. **Saneamento de Segurança no Git (Cache de Credenciais):** Identificação e correção de um vazamento acidental do arquivo `backend/.env` para o histórico do GitHub. O arquivo foi removido da memória de rastreamento de forma segura (`git rm --cached`) sem comprometer o ambiente local, e o escopo do `.gitignore` foi blindado.
-3. **Resolução de Conexão Local:** Diagnóstico do erro `ECONNREFUSED` no Postman através do alinhamento de portas de execução (`3000`) e reinicialização ativa do processo de desenvolvimento em background.
+1. **Resolução de Escopo de Rede Interna:** Correção do erro clássico `P1001` substituindo a referência de `localhost` pelo nome lógico do serviço do banco de dados (`postgres_db`) no `.env`.
+2. **Correção de Rotas de API:** Identificação de um erro de 404 de rotas no Express decorrente de incompatibilidade de strings de caminhos literais (plural vs singular) no mapeamento do roteador em `index.ts`.
 
 ---
 
-## [08/06/2026] — Fundação do Ecossistema & Integração de Banco de Dados
+## 🛠️ [09/06/2026] — Segurança, Autenticação JWT e Integração com Spotify
 
-Nesta etapa inicial, o foco total foi estabelecer uma infraestrutura moderna, segura e com tipagem estática ponta a ponta para o Backend da aplicação.
-
-### O que foi implementado:
-
-- **Conteinerização do Banco de Dados:** Configuração do ambiente isolado utilizando **Docker** e **Docker Compose** para rodar um banco de dados relacional **PostgreSQL** na porta `5432`.
-- **Arquitetura Base do Servidor:** Criação do servidor **Express** em **TypeScript** estruturado com suporte a módulos nativos do Node (ESM).
-- **Mapeamento de Dados (ORM):** Modelagem inicial do banco de dados e integração do **Prisma ORM (v6)**.
-- **Roteamento e Teste de Carga:** Criação da rota de verificação de saúde da API (`/api/health`) para validar, em tempo de execução, a comunicação assíncrona entre o Express, o Prisma e o container do PostgreSQL.
-
-### Desafios Superados & Decisões de Arquitetura:
-
-1. **Ambiente Node.js:** Atualização do interpretador local para o **Node v24.16.0 (LTS)** para garantir compatibilidade com as flags mais modernas de execução TypeScript.
-2. **Estratégia de ORM (Downgrade de Versão):** Durante a inicialização com o Prisma 7, identificou-se um conflito de isolamento de escopo na leitura de variáveis de ambiente com o executor `tsx watch` no Windows. Tomou-se a decisão técnica de adotar o **Prisma v6.2.0**, centralizando a resolução da string de conexão via `env("DATABASE_URL")` diretamente no `schema.prisma`. Isso garantiu estabilidade imediata e eliminou validações redundantes no construtor da API.
-3. **Resolução de Tipos:** Forçada a regeneração do Prisma Client (`npx prisma generate`) para limpar o cache do compilador do TypeScript, estabelecendo contratos de dados seguros para as futuras consultas.
+Transformação da infraestrutura básica em uma API de rede social funcional, estabelecendo segurança no tráfego de dados e conectando o ecossistema do SellSong à base de dados oficial do Spotify.
 
 ---
 
-## Próximos Passos (Backlog)
+## 🛠️ [08/06/2026] — Fundação do Ecossistema & Integração de Banco de Dados
 
-- [x] **Módulo de Amizades (Follows):** Desenvolver o controller e rotas protegidas para permitir que usuários sigam/parem de seguir uns aos outros. (Concluído em 11/06/2026)
-- [ ] **Feed Dinâmico Customizado:** Criar uma rota de feed que filtre apenas os posts das pessoas que o usuário autenticado segue.
-- [ ] **Setup do Frontend:** Inicialização do projeto React + TypeScript + Vite com Bootstrap para começar a dar cara à nossa rede social e consumir estes endpoints.
+Nesta etapa inicial, o foco total foi estabelecer uma infraestrutura moderna, segura e com tipagem estática ponta a ponta para o Backend da aplicação usando Docker, PostgreSQL, Express e Prisma v6.
+
+---
+
+## 📅 Próximos Passos (Backlog)
+
+- [ ] **Tela de Login / Cadastro (`views/Auth.tsx`):** Criação do formulário para autenticar o usuário, receber o Token JWT e salvá-lo no `localStorage`.
+- [ ] **Tela de Busca Musical (`views/Search.tsx`):** Componentização da barra de pesquisa consumindo o catálogo do Spotify através do nosso Axios.
+- [ ] **Módulo de Publicação Visual:** Modal ou formulário para o usuário escolher uma música buscada, atribuir uma nota em estrelas (1 a 5) e digitar uma resenha.
+- [ ] **Feed Global e Perfil:** Criação das telas para exibição das postagens e gerenciamento de seguidores.
