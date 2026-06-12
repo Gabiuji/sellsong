@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Landing from "./views/Landing";
 import Auth from "./views/Auth";
+import Search from "./views/Search"; // 1. Importe a Tela de Busca
 
 interface User {
   id: number;
@@ -9,10 +10,7 @@ interface User {
 }
 
 function App() {
-  // Controle para saber se o usuário clicou no botão "Entrar" da Landing Page
   const [viewAuth, setViewAuth] = useState(false);
-
-  // Estado inicial que lê o LocalStorage
   const [user, setUser] = useState<User | null>(() => {
     const token = localStorage.getItem("@SellSong:token");
     const savedUser = localStorage.getItem("@SellSong:user");
@@ -33,44 +31,42 @@ function App() {
     localStorage.removeItem("@SellSong:token");
     localStorage.removeItem("@SellSong:user");
     setUser(null);
-    setViewAuth(false); // Volta para a Landing Page ao deslogar
+    setViewAuth(false);
   };
 
-  // FLUXO DE NAVEGAÇÃO CONDICIONAL:
-
-  // CORAÇÃO 1: Se o usuário estiver logado, cai direto no Dashboard interno
+  // 1. Se logado, exibe o Dashboard contendo o visualizador de buscas do Spotify
   if (user) {
     return (
-      <div className="container py-5">
-        <div className="d-flex justify-content-between align-items-center bg-white p-4 shadow-sm rounded-4 mb-4">
-          <div>
-            <h2 className="fw-bold text-dark m-0">Olá, @{user.username}! 👋</h2>
-            <p className="text-muted m-0 small">{user.email}</p>
+      <div className="bg-light min-vh-100">
+        {/* Topbar do Usuário */}
+        <div className="bg-white shadow-sm border-bottom py-3 mb-4">
+          <div className="container d-flex justify-content-between align-items-center">
+            <div className="d-flex align-items-center">
+              <span className="fs-3 fw-bold text-primary me-3">
+                <i className="bi bi-music-note-beamed"></i>
+              </span>
+              <h5 className="fw-bold text-dark m-0">
+                Olá, @{user.username}! 👋
+              </h5>
+            </div>
+            <button
+              className="btn btn-outline-danger btn-sm rounded-pill px-3"
+              onClick={handleLogout}
+            >
+              <i className="bi bi-box-arrow-right me-1"></i> Sair
+            </button>
           </div>
-          <button
-            className="btn btn-outline-danger btn-sm rounded-pill px-3"
-            onClick={handleLogout}
-          >
-            <i className="bi bi-box-arrow-right me-1"></i> Sair
-          </button>
         </div>
 
-        <div className="alert alert-info rounded-4 p-4 text-center">
-          <h4 className="fw-bold">🎉 Autenticação Dockerizada com Sucesso!</h4>
-          <p className="m-0">
-            O seu token JWT está salvo e o Axios o injetará de forma invisível
-            nas próximas chamadas de API.
-          </p>
-        </div>
+        {/* Tela de Busca ativa no painel principal */}
+        <Search />
       </div>
     );
   }
 
-  // CORAÇÃO 2: Se não estiver logado, mas clicou para entrar, exibe a tela de Login/Cadastro
   if (viewAuth) {
     return (
       <div className="position-relative">
-        {/* Botão flutuante sutil para voltar para a Landing Page caso ele desista do login */}
         <button
           className="btn btn-link text-secondary position-absolute top-0 start-0 m-3 text-decoration-none fw-semibold"
           onClick={() => setViewAuth(false)}
@@ -82,7 +78,6 @@ function App() {
     );
   }
 
-  // CORAÇÃO 3: Estado padrão inicial — Landing Page corporativa
   return <Landing onEnter={() => setViewAuth(true)} />;
 }
 

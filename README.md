@@ -4,22 +4,26 @@ Este arquivo registra a evolução técnica, correções de arquitetura e funcio
 
 ---
 
-## 🛠️ [12/06/2026] — Criação da Landing Page e Máquina de Estados de Navegação
+## [12/06/2026] — Sistema de Crítica Estilo Letterboxd (Meias-Estrelas) e Alinhamento de Banco
 
-A meta do dia foi refinar o fluxo de entrada da aplicação (UX), construindo uma página de apresentação institucional e um gerenciador de estados robusto para controlar o acesso às telas do sistema.
+Dia focado na implementação da mecânica core de avaliações da rede social, refinando a precisão das notas e superando gargalos de sincronismo entre contêineres e o ORM.
 
-### ✨ O que foi implementado:
+### O que foi implementado:
 
-- **Landing Page Institucional (`views/Landing.tsx`):** Criação de uma página de entrada moderna utilizando seções do Bootstrap (_Hero_, _Features_ e _Footer_), destacando as propostas de valor do app (Spotify, Resenhas e Conexões).
-- **Animações Fluidas via CSS:** Inclusão de regras de @keyframes no `index.css` para animação tridimensional de flutuação e rotação suave do elemento visual central (Vinil).
-- **Arquitetura de Navegação Condicional (State Machine):** Reestruturação do arquivo `App.tsx` para operar como uma máquina de estados finitos provisória, chaveando o ciclo de renderização entre: `Landing Page` $\rightarrow$ `Formulário de Autenticação` $\rightarrow$ `Dashboard Protegido`.
-- **Desconexão Segura (Logout Avançado):** Ajuste do gatilho de saída para realizar a limpeza atômica dos tokens do `localStorage` e retroceder o estado de visualização do cliente diretamente para a Landing Page inicial.
+- **Interface de Meia-Estrela (`views/Search.tsx`):** Desenvolvimento de lógica matemática baseada no bounding box do mouse (`onMouseMove`) para permitir avaliações fracionadas (ex: 3.5, 4.5) usando vetores nativos do _Bootstrap Icons_.
+- **Migração para Dados Decimais (Prisma + Postgres):** Alteração do modelo `Post` no banco de dados mudando a coluna `rating` de `Int` para `Float` para suportar notas quebradas sem perda de precisão.
+- **Módulo de Publicação Visual Concluído:** Integração bem-sucedida entre o clique no card do Spotify, abertura do Modal dinâmico com blur de fundo e disparo do payload para a rota `POST /api/posts`.
 
-## 🛠️ [11/06/2026] — Inicialização e Dockerização Completa do Frontend (React + Vite)
+### Desafios Superados & Decisões de Arquitetura:
+
+1. **Resolução de Schema Desalinhado (Erro 400):** Identificação e correção de divergência de nomenclatura onde o controller tentava persistir o argumento inválido `content` em vez da chave mapeada `review`.
+2. **Sincronização de Estado Pós-Clean (Erro P2021 e P2003):** Resolução de quebra de integridade referencial (_Foreign Key constraint_) forçando a execução do `prisma db push` após limpeza de volumes do Docker e expurgando tokens obsoletos do cache local via reautenticação limpa.
+
+## [11/06/2026] — Inicialização e Dockerização Completa do Frontend (React + Vite)
 
 O objetivo principal de hoje foi inaugurar a interface visual da aplicação e acoplá-la ao ecossistema de containers, alcançando um ambiente de desenvolvimento 100% orquestrado e isolado.
 
-### ✨ O que foi implementado:
+### O que foi implementado:
 
 - **Core do Frontend:** Inicialização do projeto utilizando **React**, **TypeScript** e **Vite** como empacotador de alta performance na pasta `frontend/`.
 - **Estilização e Componentes Visuais:** Integração global do **Bootstrap v5** e **Bootstrap Icons** para a construção de interfaces responsivas e limpas.
@@ -30,11 +34,11 @@ O objetivo principal de hoje foi inaugurar a interface visual da aplicação e a
 
 ---
 
-## 🛠️ [10/06/2026] — Modelagem Avançada, Middleware de Segurança e Conteinerização da API
+## [10/06/2026] — Modelagem Avançada, Middleware de Segurança e Conteinerização da API
 
 O foco deste dia foi descentralizar a execução híbrida da aplicação, migrando o servidor Express inteiramente para dentro do ecossistema Docker, expandindo a modelagem de dados e aplicando barreiras de autenticação com middlewares.
 
-### ✨ O que foi implementado:
+### O que foi implementado:
 
 - **Expansão do Banco de Dados (Relacionamentos):** Atualização do `schema.prisma` com a criação do modelo de `Post` e o modelo de `Follow` (auto-relacionamento muitos-para-muitos).
 - **Middleware de Autenticação JWT:** Desenvolvimento do `authMiddleware` para interceptação estrita de cabeçalhos HTTP (`Authorization: Bearer <token>`).
@@ -42,28 +46,28 @@ O foco deste dia foi descentralizar a execução híbrida da aplicação, migran
 - **Conteinerização Completa do Backend:** Criação do `Dockerfile` multiestágio baseado em imagens Alpine do Node 24 para isolamento total da API Express.
 - **Orquestração Segura via Docker Compose:** Configuração da leitura de variáveis de ambiente dinâmicas usando `env_file`.
 
-### 🐛 Desafios Superados & Decisões de Arquitetura:
+### Desafios Superados & Decisões de Arquitetura:
 
 1. **Resolução de Escopo de Rede Interna:** Correção do erro clássico `P1001` substituindo a referência de `localhost` pelo nome lógico do serviço do banco de dados (`postgres_db`) no `.env`.
 2. **Correção de Rotas de API:** Identificação de um erro de 404 de rotas no Express decorrente de incompatibilidade de strings de caminhos literais (plural vs singular) no mapeamento do roteador em `index.ts`.
 
 ---
 
-## 🛠️ [09/06/2026] — Segurança, Autenticação JWT e Integração com Spotify
+## [09/06/2026] — Segurança, Autenticação JWT e Integração com Spotify
 
 Transformação da infraestrutura básica em uma API de rede social funcional, estabelecendo segurança no tráfego de dados e conectando o ecossistema do SellSong à base de dados oficial do Spotify.
 
 ---
 
-## 🛠️ [08/06/2026] — Fundação do Ecossistema & Integração de Banco de Dados
+## [08/06/2026] — Fundação do Ecossistema & Integração de Banco de Dados
 
 Nesta etapa inicial, o foco total foi estabelecer uma infraestrutura moderna, segura e com tipagem estática ponta a ponta para o Backend da aplicação usando Docker, PostgreSQL, Express e Prisma v6.
 
 ---
 
-## 📅 Próximos Passos (Backlog)
+## Próximos Passos (Backlog)
 
 - [x] **Tela de Login / Cadastro (`views/Auth.tsx`):** Criação do formulário para autenticar o usuário, receber o Token JWT e salvá-lo no `localStorage`. (concluído em 12/06/2026)
-- [ ] **Tela de Busca Musical (`views/Search.tsx`):** Componentização da barra de pesquisa consumindo o catálogo do Spotify através do nosso Axios.
-- [ ] **Módulo de Publicação Visual:** Modal ou formulário para o usuário escolher uma música buscada, atribuir uma nota em estrelas (1 a 5) e digitar uma resenha.
+- [x] **Tela de Busca Musical (`views/Search.tsx`):** Componentização da barra de pesquisa consumindo o catálogo do Spotify através do nosso Axios. (concluído em 12/06/2026)
+- [x] **Módulo de Publicação Visual:** Modal ou formulário para o usuário escolher uma música buscada, atribuir uma nota em estrelas (1 a 5) e digitar uma resenha.
 - [ ] **Feed Global e Perfil:** Criação das telas para exibição das postagens e gerenciamento de seguidores.

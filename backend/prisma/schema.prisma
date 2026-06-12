@@ -28,7 +28,7 @@ model Post {
   trackName     String   // Nome da música (guardado para busca rápida no feed)
   artistName    String   // Nome do artista/banda
   albumCover    String   // URL da imagem da capa do álbum
-  rating        Int      // Nota de 1 a 5 estrelas dado pelo usuário
+  rating        Float    // Nota de 1 a 5 estrelas dado pelo usuário
   review        String?  // Texto opcional com a opinião do usuário
   createdAt     DateTime @default(now())
 

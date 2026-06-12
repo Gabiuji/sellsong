@@ -27,3 +27,10 @@ body {
   animation: float 4s ease-in-out infinite;
   display: inline-block;
 }
+
+.track-card:hover img {
+  transform: scale(1.06);
+}
+.x-small {
+  font-size: 0.75rem;
+}
