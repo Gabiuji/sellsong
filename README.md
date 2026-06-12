@@ -4,6 +4,17 @@ Este arquivo registra a evolução técnica, correções de arquitetura e funcio
 
 ---
 
+## 🛠️ [12/06/2026] — Criação da Landing Page e Máquina de Estados de Navegação
+
+A meta do dia foi refinar o fluxo de entrada da aplicação (UX), construindo uma página de apresentação institucional e um gerenciador de estados robusto para controlar o acesso às telas do sistema.
+
+### ✨ O que foi implementado:
+
+- **Landing Page Institucional (`views/Landing.tsx`):** Criação de uma página de entrada moderna utilizando seções do Bootstrap (_Hero_, _Features_ e _Footer_), destacando as propostas de valor do app (Spotify, Resenhas e Conexões).
+- **Animações Fluidas via CSS:** Inclusão de regras de @keyframes no `index.css` para animação tridimensional de flutuação e rotação suave do elemento visual central (Vinil).
+- **Arquitetura de Navegação Condicional (State Machine):** Reestruturação do arquivo `App.tsx` para operar como uma máquina de estados finitos provisória, chaveando o ciclo de renderização entre: `Landing Page` $\rightarrow$ `Formulário de Autenticação` $\rightarrow$ `Dashboard Protegido`.
+- **Desconexão Segura (Logout Avançado):** Ajuste do gatilho de saída para realizar a limpeza atômica dos tokens do `localStorage` e retroceder o estado de visualização do cliente diretamente para a Landing Page inicial.
+
 ## 🛠️ [11/06/2026] — Inicialização e Dockerização Completa do Frontend (React + Vite)
 
 O objetivo principal de hoje foi inaugurar a interface visual da aplicação e acoplá-la ao ecossistema de containers, alcançando um ambiente de desenvolvimento 100% orquestrado e isolado.
@@ -16,12 +27,6 @@ O objetivo principal de hoje foi inaugurar a interface visual da aplicação e a
 - **Orquestração Multicluster (Docker Compose):** Inclusão do serviço de frontend no `docker-compose.yml`, unificando a inicialização do Banco de Dados (PostgreSQL), da API (Express) e da Interface (React) com um único comando.
 - **Hot Reload Distribuído:** Configuração fina do mecanismo de HMR (_Hot Module Replacement_) e pooling de arquivos no `vite.config.ts`, permitindo que qualquer alteração de código feita no editor reflita instantaneamente no navegador, mesmo rodando de dentro do container Linux.
 - **Camada de Serviço HTTP (Axios):** Criação da instância centralizada do Axios em `src/services/api.ts` pré-configurada com interceptors para injeção automática de tokens JWT do `localStorage` nas requisições para a porta `3000`.
-
-### 🐛 Desafios Superados & Decisões de Arquitetura:
-
-1. **Resolução de Escopo do Vite no Docker:** Ajuste no argumento de execução do container adicionando a flag `--host` no `CMD`, permitindo que o Vite responda a requisições externas ao container e fique acessível pelo navegador da máquina hospedeira em `localhost:5173`.
-2. **Sincronização de Tipagem do TypeScript:** Resolução do erro em lote no `App.tsx` (`Cannot find module 'react'`) através da execução assistida do `npm install` no escopo do container e reinicialização do servidor de tipos (TS Server) no editor.
-3. **Mapeamento de Volumes Isolados:** Configuração de volumes anônimos para a pasta `node_modules` no frontend, impedindo conflitos de dependências entre o sistema operacional local e os pacotes compilados para o Linux do Docker.
 
 ---
 
@@ -58,7 +63,7 @@ Nesta etapa inicial, o foco total foi estabelecer uma infraestrutura moderna, se
 
 ## 📅 Próximos Passos (Backlog)
 
-- [ ] **Tela de Login / Cadastro (`views/Auth.tsx`):** Criação do formulário para autenticar o usuário, receber o Token JWT e salvá-lo no `localStorage`.
+- [x] **Tela de Login / Cadastro (`views/Auth.tsx`):** Criação do formulário para autenticar o usuário, receber o Token JWT e salvá-lo no `localStorage`. (concluído em 12/06/2026)
 - [ ] **Tela de Busca Musical (`views/Search.tsx`):** Componentização da barra de pesquisa consumindo o catálogo do Spotify através do nosso Axios.
 - [ ] **Módulo de Publicação Visual:** Modal ou formulário para o usuário escolher uma música buscada, atribuir uma nota em estrelas (1 a 5) e digitar uma resenha.
 - [ ] **Feed Global e Perfil:** Criação das telas para exibição das postagens e gerenciamento de seguidores.
