@@ -1,13 +1,17 @@
 import { Router } from "express";
-import { createPost, getFeed } from "../controllers/postController.js";
+import {
+  createPost,
+  getFeed,
+  getPopularItems,
+} from "../controllers/postController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
 const router = Router();
 
-// Rota para criar post: Protegida pelo middleware de autenticação
 router.post("/", authMiddleware, createPost);
+router.get("/", authMiddleware, getFeed);
 
-// Rota para ver o feed global: Pública (qualquer um pode ler o feed inicial)
-router.get("/feed", getFeed);
+// 🌟 ADICIONE ESTA LINHA: Define a rota de populares
+router.get("/popular", authMiddleware, getPopularItems);
 
 export default router;

@@ -4,6 +4,22 @@ Este arquivo registra a evolução técnica, correções de arquitetura e funcio
 
 ---
 
+## [14/06/2026] - Estrutura do perfil, função de Follow e Friends, Página de configurações do usuário
+
+### 🗄️ Ajustes de Banco de Dados e API (Backend)
+
+- **Estrutura de Perfil:** Atualizado o schema do Prisma integrando colunas nativas para `bio` e `avatarUrl` no banco PostgreSQL.
+- **Otimização de Payload:** Expandido o limite de recepção de requisições JSON do Express para `10mb`, viabilizando o transporte de imagens convertidas em strings Base64 do frontend para o backend sem estourar o erro `413 Payload Too Large`.
+- **Mapeamento de Métricas Relacionais:** Implementadas queries independentes utilizando `prisma.follow.count` para mitigar conflitos de Self-Relations, garantindo a exibição em tempo real da contagem de seguidores e pessoas seguidas no perfil.
+- **Roteamento Social:** Criação dos endpoints `GET /api/users/search` (busca insensível a maiúsculas/minúsculas) e `POST /api/users/:id/follow` para controle de conexões entre perfis.
+
+### 🎨 Painel Interativo e Rede Social (Frontend)
+
+- **Upload Local Próprio:** Substituída a entrada estática por URL por um seletor de arquivos local (`<input type="file">`) integrado ao `FileReader`, codificando imagens da máquina em strings Base64 com preview instantâneo.
+- **Componente de Configurações da Conta:** Implementação da view `<Settings />` protegendo variáveis de token internamente nos hooks para estabilizar o ciclo de vida e renderização do React.
+- **Navegação Dinâmica no Dashboard:** Expandido o chaveamento de abas (`activeTab`) na linha de controle central do `App.tsx` para comportar a visualização de busca musical, configurações do perfil e painel social sem recarregar a página.
+- **Sistema de Amizades Estilo Letterboxd:** Desenvolvimento da view `<UserSearch />` capaz de identificar interações mútuas e renderizar de forma condicional o status do relacionamento (botão "+ Seguir", botão cinza "Seguindo" ou o badge verde "🤝 Amigos").
+
 ## [13/06/2026] - Ajustes de busca da API do Spotify, Filtro de busca e Atualização da interface
 
 ### Backend (Integração Spotify & Docker)

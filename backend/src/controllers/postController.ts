@@ -104,3 +104,33 @@ export const getFeed = async (
     res.status(500).json({ error: "Erro interno ao carregar o feed." });
   }
 };
+
+// ==========================================
+// 3. LISTAR ITENS POPULARES (BOMBANDO NO APP)
+// ==========================================
+export const getPopularItems = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    // Busca as 4 reviews com as maiores notas de forma recente
+    const popularPosts = await prisma.post.findMany({
+      take: 4,
+      orderBy: [{ rating: "desc" }, { createdAt: "desc" }],
+      select: {
+        id: true,
+        trackName: true,
+        artistName: true,
+        albumCover: true,
+        rating: true,
+      },
+    });
+
+    res.json(popularPosts);
+  } catch (error) {
+    console.error("Erro ao buscar populares:", error);
+    res
+      .status(500)
+      .json({ error: "Erro interno ao carregar itens populares." });
+  }
+};

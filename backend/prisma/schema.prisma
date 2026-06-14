@@ -19,6 +19,8 @@ model User {
   posts     Post[]
   followers Follow[] @relation("UserFollowers")
   following Follow[] @relation("UserFollowing")
+  bio       String?  @db.Text // Biografia opcional do usuário
+  avatarUrl String?  @db.Text// URL opcional para a foto de perfil do usuário
 }
 
 // 2. MODELO DE POSTS (Resenhas Musicais)
