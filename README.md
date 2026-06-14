@@ -4,6 +4,21 @@ Este arquivo registra a evolução técnica, correções de arquitetura e funcio
 
 ---
 
+## [13/06/2026] - Ajustes de busca da API do Spotify, Filtro de busca e Atualização da interface
+
+### Backend (Integração Spotify & Docker)
+
+- **Correção no Motor de Busca:** Ajustada a rota `/api/spotify/search` para capturar e respeitar dinamicamente o parâmetro `type` (`track`, `album`, `artist`), eliminando o comportamento que forçava apenas a busca de músicas.
+- **Resolução de Conflitos no Docker:** Identificado e corrigido travamento de cache de volumes no container do backend, forçando o build limpo para sincronização em tempo real dos controladores do Express.
+- **Tratamento de Exceções e Dados Nulos:** Blindagem no mapeamento dos dados retornados pelo Spotify com encadeamento opcional (`?.`) e fallbacks visuais (placeholders) para artistas sem imagem de perfil ou sem gêneros listados.
+- **Endpoint de Tracklist:** Rota `/api/spotify/albums/:id/tracks` totalmente corrigida, realizando o cruzamento de dados para injetar automaticamente a capa do álbum pai em todas as faixas filhas.
+
+### Frontend (Interface & Experiência do Usuário)
+
+- **Busca Unificada com Tabs:** Implementação de seletores visuais em formato de abas arredondadas (Bootstrap) para alternar instantaneamente os escopos de busca.
+- **Segurança e Persistência:** Ajustada a captura de credenciais no fluxo do Axios para ler a chave criptografada correta do Local Storage (`@SellSong:token`), sanando os erros `401 Unauthorized` na comunicação com o backend.
+- **Navegação em Funil (Drill-down):** Criação de estados dinâmicos que permitem ao usuário navegar de forma fluida: clicar em um Artista ➔ Ver seus Álbuns ➔ Ver suas Músicas ➔ Avaliar com notas e resenhas.
+
 ## [12/06/2026] — Sistema de Crítica Estilo Letterboxd (Meias-Estrelas) e Alinhamento de Banco
 
 Dia focado na implementação da mecânica core de avaliações da rede social, refinando a precisão das notas e superando gargalos de sincronismo entre contêineres e o ORM.

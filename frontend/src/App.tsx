@@ -1,7 +1,9 @@
 import { useState } from "react";
 import Landing from "./views/Landing";
 import Auth from "./views/Auth";
-import Search from "./views/Search"; // 1. Importe a Tela de Busca
+import Search from "./views/Search";
+import ProfileWidget from "./components/ProfileWidget";
+import DiscoveryWidget from "./components/DiscoveryWidget";
 
 interface User {
   id: number;
@@ -38,28 +40,68 @@ function App() {
   if (user) {
     return (
       <div className="bg-light min-vh-100">
-        {/* Topbar do Usuário */}
-        <div className="bg-white shadow-sm border-bottom py-3 mb-4">
-          <div className="container d-flex justify-content-between align-items-center">
-            <div className="d-flex align-items-center">
-              <span className="fs-3 fw-bold text-primary me-3">
-                <i className="bi bi-music-note-beamed"></i>
+        {/* TOPBAR GLOBAL */}
+        <nav className="navbar navbar-expand-lg navbar-white bg-white shadow-sm border-bottom sticky-top py-2">
+          <div className="container">
+            <span className="navbar-brand fw-bold text-primary fs-4 d-flex align-items-center m-0">
+              <i className="bi bi-music-note-beamed me-2"></i> SellSong
+            </span>
+
+            <div className="d-flex align-items-center gap-3 ms-auto">
+              <span className="text-secondary small d-none d-sm-inline">
+                Alinhado como <strong>@`{user.username}`</strong>
               </span>
-              <h5 className="fw-bold text-dark m-0">
-                Olá, @{user.username}! 👋
-              </h5>
+              <button
+                className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold"
+                onClick={handleLogout}
+              >
+                <i className="bi bi-box-arrow-right me-1"></i> Sair
+              </button>
             </div>
-            <button
-              className="btn btn-outline-danger btn-sm rounded-pill px-3"
-              onClick={handleLogout}
-            >
-              <i className="bi bi-box-arrow-right me-1"></i> Sair
-            </button>
+          </div>
+        </nav>
+
+        {/* CONTAINER DO LAYOUT DE 3 COLUNAS */}
+        <div className="container py-4">
+          <div className="row g-4">
+            {/* COLUNA ESQUERDA: Perfil e Atalhos (Ocupa 3 de 12 colunas no desktop) */}
+            <aside className="col-12 col-lg-3">
+              <ProfileWidget username={user.username} />
+            </aside>
+
+            {/* COLUNA CENTRAL: Motor de Busca e Feed (Ocupa 6 de 12 colunas) */}
+            <main className="col-12 col-md-8 col-lg-6">
+              {/* Box de Busca Musical ativa na Timeline */}
+              <div className="card border-0 shadow-sm rounded-4 bg-white overflow-hidden p-2">
+                <Search />
+              </div>
+
+              {/* ⏳ ESPAÇO RESERVADO PARA O FEED SOCIAL */}
+              <div className="mt-4">
+                <div className="d-flex align-items-center mb-3">
+                  <h5 className="fw-bold text-dark m-0">Feed da sua Rede</h5>
+                  <span className="badge bg-primary rounded-pill ms-2 small">
+                    Novidades
+                  </span>
+                </div>
+
+                {/* O feed será acoplado aqui puxando do banco */}
+                <div className="card border-0 shadow-sm rounded-4 p-4 text-center text-secondary bg-white">
+                  <i className="bi bi-chat-square-heart fs-2 text-muted mb-2"></i>
+                  <p className="m-0 small">
+                    As avaliações dos seus amigos e as suas aparecerão aqui em
+                    tempo real!
+                  </p>
+                </div>
+              </div>
+            </main>
+
+            {/* COLUNA DIREITA: Rankings e Descobertas (Ocupa 3 de 12 colunas) */}
+            <aside className="col-12 col-md-4 col-lg-3">
+              <DiscoveryWidget />
+            </aside>
           </div>
         </div>
-
-        {/* Tela de Busca ativa no painel principal */}
-        <Search />
       </div>
     );
   }

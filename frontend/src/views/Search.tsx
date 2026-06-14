@@ -1,354 +1,305 @@
-import { useState } from "react";
-import api from "../services/api";
+import React, { useState } from "react";
+import axios from "axios";
 
-interface Track {
+// Definição das interfaces para manter o TypeScript feliz
+interface SearchResult {
   id: string;
+  type: "track" | "album" | "artist";
   name: string;
-  artists: string;
-  albumName: string;
-  albumCover: string;
+  artist?: string;
+  artists?: string; // Algumas rotas retornam plural
+  album?: string;
+  albumName?: string;
+  albumCover?: string;
+  avatar?: string;
+  genres?: string;
+  releaseDate?: string;
 }
 
 export default function Search() {
   const [query, setQuery] = useState("");
-  const [tracks, setTracks] = useState<Track[]>([]);
+  const [searchType, setSearchType] = useState<"track" | "album" | "artist">(
+    "track",
+  );
+  const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  // Estados do Modal - Agora com suporte a float (ex: 3.5)
-  const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
-  const [rating, setRating] = useState<number>(0);
-  const [hoverRating, setHoverRating] = useState<number>(0);
-  const [review, setReview] = useState("");
-  const [submitLoading, setSubmitLoading] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState({
-    type: "",
-    text: "",
-  });
+  // Estados para navegação de sub-telas (Funil)
+  const [viewMode, setViewMode] = useState<
+    "search" | "album-details" | "artist-details"
+  >("search");
+  const [selectedParentName, setSelectedParentName] = useState("");
+  const [subResults, setSubResults] = useState<SearchResult[]>([]);
 
+  //const token = localStorage.getItem("token");
+
+  // Função principal de Busca
+  // Função principal de Busca (Músicas, Álbuns, Artistas)
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
 
     setLoading(true);
-    setError("");
+    setViewMode("search");
+
+    // 🌟 CAPTURA CORRETA: Puxa usando a chave exata do SellSong
+    const rawToken = localStorage.getItem("@SellSong:token");
+
+    if (!rawToken) {
+      console.error("ERRO: Token não encontrado no LocalStorage.");
+      setLoading(false);
+      return;
+    }
+
+    const formattedToken = rawToken.startsWith("Bearer ")
+      ? rawToken
+      : `Bearer ${rawToken}`;
 
     try {
-      const response = await api.get(
-        `/spotify/search?q=${encodeURIComponent(query)}`,
+      const response = await axios.get(
+        `http://localhost:3000/api/spotify/search`,
+        {
+          headers: { Authorization: formattedToken },
+          params: { q: query, type: searchType },
+        },
       );
-      setTracks(response.data);
-    } catch (err: unknown) {
-      console.error(err);
-      setError(
-        "Não foi possível buscar as músicas. Tente novamente mais tarde.",
-      );
+      setResults(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar dados:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  // Função para calcular se o mouse está na metade esquerda ou direita da estrela
-  const calculateRatingValue = (
-    e: React.MouseEvent<HTMLElement>,
-    starIndex: number,
-  ) => {
-    const el = e.currentTarget;
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left; // Posição X do clique dentro da estrela
-    const isLeftHalf = x < rect.width / 2;
-
-    return isLeftHalf ? starIndex - 0.5 : starIndex;
-  };
-
-  const handlePublishReview = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedTrack || rating === 0) {
-      setFeedbackMessage({
-        type: "danger",
-        text: "Por favor, selecione uma nota de 0.5 a 5 estrelas.",
-      });
-      return;
-    }
-
-    setSubmitLoading(true);
-    setFeedbackMessage({ type: "", text: "" });
+  // Função para mergulhar nas faixas de um álbum (Drill-down)
+  const fetchAlbumTracks = async (albumId: string, albumName: string) => {
+    setLoading(true);
+    const rawToken = localStorage.getItem("@SellSong:token"); // 🌟 Ajustado aqui também
+    const formattedToken =
+      rawToken &&
+      (rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`);
 
     try {
-      // Garanta que o objeto enviado possui EXATAMENTE estes nomes de propriedades:
-      await api.post("/posts", {
-        spotifyTrackId: selectedTrack.id || "",
-        trackName: selectedTrack.name || "Música Desconhecida",
-        artistName: selectedTrack.artists || "Artista Desconhecida",
-        albumCover: selectedTrack.albumCover || "",
-        rating: Number(rating.toFixed(1)),
-        review: review || "", // Garante string vazia se o usuário não digitar nada
-      });
-
-      setFeedbackMessage({
-        type: "success",
-        text: "Sua avaliação estilo Letterboxd foi publicada com sucesso!",
-      });
-
-      setTimeout(() => {
-        setSelectedTrack(null);
-        setRating(0);
-        setReview("");
-        setFeedbackMessage({ type: "", text: "" });
-      }, 1500);
-    } catch (err: unknown) {
-      console.error(err);
-      setFeedbackMessage({
-        type: "danger",
-        text: "Erro ao salvar sua resenha. Tente novamente.",
-      });
+      const response = await axios.get(
+        `http://localhost:3000/api/spotify/albums/${albumId}/tracks`,
+        {
+          headers: { Authorization: formattedToken || "" },
+        },
+      );
+      setSubResults(response.data);
+      setSelectedParentName(albumName);
+      setViewMode("album-details");
+    } catch (error) {
+      console.error("Erro ao buscar faixas do álbum:", error);
     } finally {
-      setSubmitLoading(false);
+      setLoading(false);
     }
   };
 
-  // Helper para renderizar o ícone de estrela correto com base na nota atual (real ou hover)
-  const renderStarIcon = (starIndex: number) => {
-    const activeRating = hoverRating || rating;
+  // Função para mergulhar nos álbuns de um artista (Drill-down)
+  const fetchArtistAlbums = async (artistId: string, artistName: string) => {
+    setLoading(true);
+    const rawToken = localStorage.getItem("@SellSong:token"); // 🌟 Ajustado aqui também
+    const formattedToken =
+      rawToken &&
+      (rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`);
 
-    if (activeRating >= starIndex) {
-      return "bi-star-fill text-warning"; // Estrela Cheia
-    } else if (activeRating === starIndex - 0.5) {
-      return "bi-star-half text-warning"; // Meia Estrela!
-    } else {
-      return "bi-star text-muted"; // Estrela Vazia
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/api/spotify/artists/${artistId}/albums`,
+        {
+          headers: { Authorization: formattedToken || "" },
+        },
+      );
+      setSubResults(response.data);
+      setSelectedParentName(artistName);
+      setViewMode("artist-details");
+    } catch (error) {
+      console.error("Erro ao buscar álbuns do artista:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="container py-4">
-      {/* CABEÇALHO */}
-      <div className="text-center mb-5">
-        <h2 className="fw-bold text-dark mb-2">
-          <i className="bi bi-search text-primary me-2"></i>Descubra Novas
-          Músicas
-        </h2>
-        <p className="text-secondary">
-          Explore o catálogo global do Spotify e encontre a trilha sonora para
-          sua próxima resenha.
-        </p>
-      </div>
-
-      {/* BARRA DE PESQUISA */}
-      <div className="row justify-content-center mb-5">
-        <div className="col-md-8 col-lg-6">
-          <form
-            onSubmit={handleSearch}
-            className="card p-2 shadow-sm border-0 rounded-pill bg-white"
-          >
-            <div className="input-group">
-              <span className="input-group-text bg-transparent border-0 text-secondary fs-5 ps-3">
-                <i className="bi bi-music-note"></i>
-              </span>
-              <input
-                type="text"
-                className="form-control bg-transparent border-0 shadow-none fs-5"
-                placeholder="Nome da música, artista ou álbum..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-              />
-              <button
-                type="submit"
-                className="btn btn-primary rounded-pill px-4 fw-semibold"
-                disabled={loading}
-              >
-                {loading ? (
-                  <span className="spinner-border spinner-border-sm me-2"></span>
-                ) : (
-                  <i className="bi bi-search me-2"></i>
-                )}
-                Buscar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {error && (
-        <div className="alert alert-danger rounded-4 text-center p-3 shadow-sm">
-          {error}
-        </div>
-      )}
-
-      {loading && (
-        <div className="d-flex justify-content-center my-5">
-          <div
-            className="spinner-border text-primary"
-            style={{ width: "3rem", height: "3rem" }}
-          ></div>
-        </div>
-      )}
-
-      {/* GRADE DE RESULTADOS */}
-      {!loading && tracks.length > 0 && (
-        <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
-          {tracks.map((track) => (
-            <div className="col" key={track.id}>
-              <div className="card h-100 border-0 shadow-sm rounded-4 overflow-hidden bg-white track-card">
-                <img
-                  src={track.albumCover || "https://via.placeholder.com/300"}
-                  className="card-img-top img-fluid"
-                  alt={track.name}
-                />
-                <div className="card-body d-flex flex-column p-3">
-                  <h5
-                    className="card-title fw-bold text-dark text-truncate mb-1"
-                    title={track.name}
-                  >
-                    {track.name}
-                  </h5>
-                  <p className="card-text text-secondary small text-truncate mb-2">
-                    <i className="bi bi-person-circle me-1"></i>
-                    {track.artists}
-                  </p>
-                  <p className="card-text text-muted x-small text-truncate mb-3">
-                    <i className="bi bi-disc me-1"></i>
-                    {track.albumName}
-                  </p>
-
-                  <button
-                    className="btn btn-outline-primary btn-sm rounded-pill fw-semibold w-100 mt-auto py-2"
-                    onClick={() => setSelectedTrack(track)}
-                  >
-                    <i className="bi bi-star-fill text-warning me-2"></i>Avaliar
-                    Música
-                  </button>
-                </div>
-              </div>
-            </div>
+    <div className="p-3">
+      {/* 1. SELETOR DE ABAS (TABS) */}
+      {viewMode === "search" && (
+        <div className="d-flex justify-content-center gap-2 mb-3">
+          {(["track", "album", "artist"] as const).map((type) => (
+            <button
+              key={type}
+              type="button"
+              className={`btn btn-sm rounded-pill px-3 fw-semibold ${
+                searchType === type ? "btn-primary" : "btn-outline-secondary"
+              }`}
+              onClick={() => setSearchType(type)}
+            >
+              {type === "track" && <i className="bi bi-music-note me-1"></i>}
+              {type === "album" && <i className="bi bi-disc me-1"></i>}
+              {type === "artist" && <i className="bi bi-person-badge me-1"></i>}
+              {type === "track"
+                ? "Músicas"
+                : type === "album"
+                  ? "Álbuns"
+                  : "Artistas"}
+            </button>
           ))}
         </div>
       )}
 
-      {/* 🌟 MODAL FLUTUANTE LETTERBOXD-STYLE 🌟 */}
-      {selectedTrack && (
-        <div
-          className="modal fade show d-block"
-          style={{
-            backgroundColor: "rgba(0,0,0,0.5)",
-            backdropFilter: "blur(4px)",
-          }}
-          role="dialog"
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
-              <div className="modal-header border-0 bg-light p-3 d-flex justify-content-between align-items-center">
-                <h5 className="modal-title fw-bold text-dark m-0">
-                  Nova Resenha Crítica
-                </h5>
-                <button
-                  type="button"
-                  className="btn-close shadow-none"
-                  onClick={() => setSelectedTrack(null)}
-                ></button>
-              </div>
-
-              <form onSubmit={handlePublishReview}>
-                <div className="modal-body p-4">
-                  {feedbackMessage.text && (
-                    <div
-                      className={`alert alert-${feedbackMessage.type} small rounded-3 py-2 mb-3`}
-                    >
-                      {feedbackMessage.text}
-                    </div>
-                  )}
-
-                  <div className="d-flex align-items-center bg-light p-3 rounded-4 mb-4">
-                    <img
-                      src={selectedTrack.albumCover}
-                      alt={selectedTrack.name}
-                      className="rounded-3 shadow-sm me-3"
-                      style={{
-                        width: "64px",
-                        height: "64px",
-                        objectFit: "cover",
-                      }}
-                    />
-                    <div className="overflow-hidden">
-                      <h6 className="fw-bold text-dark m-0 text-truncate">
-                        {selectedTrack.name}
-                      </h6>
-                      <p className="text-secondary small m-0 text-truncate">
-                        {selectedTrack.artists}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* SELETOR INTERATIVO DE MEIAS ESTRELAS */}
-                  <div className="text-center mb-4">
-                    <label className="form-label d-block small fw-bold text-secondary mb-2">
-                      Sua nota para esta faixa (Deslize para meia-estrela):
-                    </label>
-                    <div className="fs-2 user-select-none">
-                      {[1, 2, 3, 4, 5].map((starIndex) => (
-                        <i
-                          key={starIndex}
-                          className={`bi px-1 ${renderStarIcon(starIndex)}`}
-                          style={{ cursor: "pointer", display: "inline-block" }}
-                          onClick={(e) =>
-                            setRating(calculateRatingValue(e, starIndex))
-                          }
-                          onMouseMove={(e) =>
-                            setHoverRating(calculateRatingValue(e, starIndex))
-                          }
-                          onMouseLeave={() => setHoverRating(0)}
-                        />
-                      ))}
-                    </div>
-                    {rating > 0 && (
-                      <span className="badge bg-warning-subtle text-warning fw-bold mt-2 px-3 py-1 rounded-pill fs-6">
-                        <i className="bi bi-star-fill me-1"></i>{" "}
-                        {rating.toFixed(1)} / 5.0
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mb-3">
-                    <label className="form-label small fw-bold text-secondary">
-                      O que você achou dessa música? (Opcional)
-                    </label>
-                    <textarea
-                      className="form-control bg-light border-0 rounded-3 p-3 text-dark shadow-none"
-                      rows={4}
-                      placeholder="Escreva sua crítica musical no estilo Letterboxd..."
-                      value={review}
-                      onChange={(e) => setReview(e.target.value)}
-                    ></textarea>
-                  </div>
-                </div>
-
-                <div className="modal-footer border-0 p-3 bg-light d-flex justify-content-end gap-2">
-                  <button
-                    type="button"
-                    className="btn btn-light rounded-pill px-4 fw-semibold border"
-                    onClick={() => setSelectedTrack(null)}
-                    disabled={submitLoading}
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary rounded-pill px-4 fw-semibold"
-                    disabled={submitLoading || rating === 0}
-                  >
-                    {submitLoading ? (
-                      <span className="spinner-border spinner-border-sm me-2"></span>
-                    ) : (
-                      <i className="bi bi-send-fill me-2"></i>
-                    )}
-                    Publicar Resenha
-                  </button>
-                </div>
-              </form>
-            </div>
+      {/* 2. BARRA DE BUSCA FORMULÁRIO */}
+      {viewMode === "search" && (
+        <form onSubmit={handleSearch} className="mb-4">
+          <div className="input-group bg-light rounded-pill p-1 border">
+            <span className="input-group-text bg-transparent border-0 text-muted ps-3">
+              <i className="bi bi-search"></i>
+            </span>
+            <input
+              type="text"
+              className="form-control bg-transparent border-0 shadow-none ps-2"
+              placeholder={`Buscar ${searchType === "track" ? "música" : searchType === "album" ? "álbum" : "artista"}...`}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <button
+              type="submit"
+              className="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm"
+            >
+              Buscar
+            </button>
           </div>
+        </form>
+      )}
+
+      {/* 3. BOTÃO VOLTAR (CASO ESTEJA EM SUB-TELAS) */}
+      {viewMode !== "search" && (
+        <div className="d-flex align-items-center mb-4 bg-light p-2 rounded-3">
+          <button
+            className="btn btn-sm btn-secondary rounded-pill me-3"
+            onClick={() => setViewMode("search")}
+          >
+            <i className="bi bi-arrow-left me-1"></i> Voltar
+          </button>
+          <span className="text-dark fw-bold text-truncate">
+            {viewMode === "album-details"
+              ? `Faixas de: ${selectedParentName}`
+              : `Álbuns de: ${selectedParentName}`}
+          </span>
         </div>
       )}
+
+      {loading && (
+        <div className="text-center py-4 text-primary">
+          <div
+            className="spinner-border spinner-border-sm me-2"
+            role="status"
+          ></div>
+          <span className="small fw-semibold">Consultando Spotify...</span>
+        </div>
+      )}
+
+      {/* 4. RENDERIZAÇÃO DOS CARDS DINÂMICOS */}
+      <div className="row g-3">
+        {/* Renderiza resultados principais da busca */}
+        {viewMode === "search" &&
+          results.map((item) => (
+            <div key={item.id} className="col-12 col-sm-6">
+              <div className="card h-100 border-0 bg-light-subtle rounded-3 p-2 d-flex flex-row align-items-center gap-3 hover-shadow transition">
+                <img
+                  src={item.albumCover || item.avatar}
+                  alt={item.name}
+                  className={`object-fit-cover shadow-sm ${item.type === "artist" ? "rounded-circle" : "rounded-2"}`}
+                  style={{ width: "56px", height: "56px" }}
+                />
+                <div className="text-truncate grow">
+                  <span className="fw-bold text-dark d-block text-truncate small mb-0">
+                    {item.name}
+                  </span>
+                  <span className="text-muted x-small text-truncate d-block">
+                    {item.type === "track" && `${item.artist} • ${item.album}`}
+                    {item.type === "album" && item.artist}
+                    {item.type === "artist" && item.genres}
+                  </span>
+                </div>
+
+                {/* Gatilhos de Ação baseados no Tipo */}
+                {item.type === "track" && (
+                  <button
+                    className="btn btn-xs btn-primary rounded-pill fw-semibold shadow-xs"
+                    onClick={() =>
+                      /* Abre seu Modal de postar */ console.log(item)
+                    }
+                  >
+                    Avaliar
+                  </button>
+                )}
+                {item.type === "album" && (
+                  <button
+                    className="btn btn-xs btn-outline-primary rounded-pill fw-semibold"
+                    onClick={() => fetchAlbumTracks(item.id, item.name)}
+                  >
+                    Ver Faixas
+                  </button>
+                )}
+                {item.type === "artist" && (
+                  <button
+                    className="btn btn-xs btn-outline-primary rounded-pill fw-semibold"
+                    onClick={() => fetchArtistAlbums(item.id, item.name)}
+                  >
+                    Álbuns
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+
+        {/* Renderiza sub-telas de detalhe (Drill-down de Álbuns ou Artistas) */}
+        {viewMode !== "search" &&
+          subResults.map((subItem) => (
+            <div key={subItem.id} className="col-12 col-sm-6">
+              <div className="card h-100 border-0 bg-light-subtle rounded-3 p-2 d-flex flex-row align-items-center gap-3">
+                <img
+                  src={subItem.albumCover}
+                  alt={subItem.name}
+                  className="rounded-2 object-fit-cover shadow-sm"
+                  style={{ width: "56px", height: "56px" }}
+                />
+                <div className="text-truncate grow">
+                  <span className="fw-bold text-dark d-block text-truncate small mb-0">
+                    {subItem.name}
+                  </span>
+                  <span className="text-muted x-small text-truncate d-block">
+                    {viewMode === "album-details"
+                      ? subItem.artists
+                      : `Lançamento: ${subItem.releaseDate}`}
+                  </span>
+                </div>
+
+                {/* No final do funil tudo vira uma música avaliável ou um álbum avaliável */}
+                {viewMode === "album-details" ? (
+                  <button
+                    className="btn btn-xs btn-primary rounded-pill fw-semibold"
+                    onClick={() =>
+                      /* Gatilho do seu modal com subItem */ console.log(
+                        subItem,
+                      )
+                    }
+                  >
+                    Avaliar
+                  </button>
+                ) : (
+                  <button
+                    className="btn btn-xs btn-outline-primary rounded-pill fw-semibold"
+                    onClick={() => fetchAlbumTracks(subItem.id, subItem.name)}
+                  >
+                    Ver Faixas
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+      </div>
     </div>
   );
 }
