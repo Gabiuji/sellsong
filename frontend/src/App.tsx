@@ -6,6 +6,8 @@ import Settings from "./views/Settings";
 import ProfileWidget from "./components/ProfileWidget";
 import DiscoveryWidget from "./components/DiscoveryWidget";
 import UserSearch from "./components/UserSearch";
+import Feed from "./views/Feed";
+import Diary from "./views/Diary";
 
 interface User {
   id: number;
@@ -16,10 +18,10 @@ interface User {
 function App() {
   const [viewAuth, setViewAuth] = useState(false);
 
-  // 🌟 Estado que controla o que aparece na coluna do meio: "feed" ou "settings"
-  const [activeTab, setActiveTab] = useState<"feed" | "settings" | "users">(
-    "feed",
-  );
+  // Estado que controla o que aparece na coluna do meio: "feed" ou "settings"
+  const [activeTab, setActiveTab] = useState<
+    "feed" | "settings" | "users" | "diary"
+  >("feed");
 
   const [user, setUser] = useState<User | null>(() => {
     const token = localStorage.getItem("@SellSong:token");
@@ -44,6 +46,10 @@ function App() {
     setViewAuth(false);
   };
 
+  // Estado de controle de atualização do feed: toda vez que um post novo for criado, incrementamos esse número para disparar o useEffect de atualização do feed
+  const [refreshFeed, setRefreshFeed] = useState(0);
+  const triggerFeedRefresh = () => setRefreshFeed((prev) => prev + 1);
+
   // 1. Se logado, exibe o Dashboard contendo o visualizador de buscas do Spotify
   if (user) {
     return (
@@ -64,8 +70,7 @@ function App() {
               <span className="text-secondary small d-none d-sm-inline">
                 Alinhado como <strong>@{user.username}</strong>
               </span>
-
-              {/* 🌟 BOTÃO DINÂMICO DE CONFIGURAÇÕES */}
+              {/* BOTÃO DINÂMICO DE CONFIGURAÇÕES */}
               <button
                 className={`btn btn-sm rounded-pill px-3 fw-semibold ${
                   activeTab === "settings"
@@ -98,7 +103,16 @@ function App() {
               >
                 <i className="bi bi-people-fill me-1"></i> Buscar Pessoas
               </button>
-
+              <button
+                className={`btn btn-sm rounded-pill px-3 fw-semibold me-2 ${
+                  activeTab === "diary"
+                    ? "btn-primary"
+                    : "btn-outline-secondary"
+                }`}
+                onClick={() => setActiveTab("diary")}
+              >
+                <i className="bi bi-journal-album me-1"></i> Meu Diário
+              </button>
               <button
                 className="btn btn-outline-danger btn-sm rounded-pill px-3 fw-semibold"
                 onClick={handleLogout}
@@ -121,39 +135,23 @@ function App() {
             <main className="col-12 col-md-8 col-lg-6">
               {activeTab === "feed" ? (
                 <>
-                  {/* BOX DE BUSCA MUSICAL */}
                   <div className="card border-0 shadow-sm rounded-4 bg-white overflow-hidden p-2">
-                    <Search />
+                    <Search onPostCreated={triggerFeedRefresh} />
                   </div>
-
-                  {/* ESPAÇO RESERVADO PARA O FEED SOCIAL */}
-                  <div className="mt-4">
-                    <div className="d-flex align-items-center mb-3">
-                      <h5 className="fw-bold text-dark m-0">
-                        Feed da sua Rede
-                      </h5>
-                      <span className="badge bg-primary rounded-pill ms-2 small">
-                        Novidades
-                      </span>
-                    </div>
-
-                    <div className="card border-0 shadow-sm rounded-4 p-4 text-center text-secondary bg-white">
-                      <i className="bi bi-chat-square-heart fs-2 text-muted mb-2"></i>
-                      <p className="m-0 small">
-                        As avaliações dos seus amigos e as suas aparecerão aqui
-                        em tempo real!
-                      </p>
-                    </div>
-                  </div>
+                  <Feed refreshTrigger={refreshFeed} />
                 </>
               ) : activeTab === "settings" ? (
                 <div className="card border-0 shadow-sm rounded-4 bg-white p-4">
                   <Settings />
                 </div>
-              ) : (
-                /* 🌟 TELA DE BUSCA DE PESSOAS / REDE SOCIAL */
+              ) : activeTab === "users" ? (
                 <div className="card border-0 shadow-sm rounded-4 bg-white p-4">
                   <UserSearch />
+                </div>
+              ) : (
+                /* 🌟 TELA DO DIÁRIO PESSOAL */
+                <div className="card border-0 shadow-sm rounded-4 bg-white p-4">
+                  <Diary />
                 </div>
               )}
             </main>

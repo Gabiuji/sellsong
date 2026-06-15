@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import RatingModal from "../components/RatingModal"; // 🌟 Importação do novo Modal
 
 // Definição das interfaces para manter o TypeScript feliz
 interface SearchResult {
@@ -14,9 +15,14 @@ interface SearchResult {
   avatar?: string;
   genres?: string;
   releaseDate?: string;
+  albumId?: string; // Para facilitar o drill-down de álbuns
 }
 
-export default function Search() {
+interface SearchProps {
+  onPostCreated: () => void;
+}
+
+export default function Search({ onPostCreated }: SearchProps) {
   const [query, setQuery] = useState("");
   const [searchType, setSearchType] = useState<"track" | "album" | "artist">(
     "track",
@@ -31,9 +37,28 @@ export default function Search() {
   const [selectedParentName, setSelectedParentName] = useState("");
   const [subResults, setSubResults] = useState<SearchResult[]>([]);
 
-  //const token = localStorage.getItem("token");
+  // 🌟 Armazena o item formatado para o Modal aceitar o padrão do Spotify
+  const [selectedTrack, setSelectedTrack] = useState<{
+    id: string;
+    name: string;
+    artists: { name: string }[];
+    album: { images: { url: string }[] };
+  } | null>(null); // 🌟 Removido o 'any' daqui também!
 
-  // Função principal de Busca
+  // Função adaptadora para transformar o nosso SearchResult no padrão que o RatingModal espera
+  const openModal = (item: SearchResult) => {
+    // 🌟 Substituído 'any' por 'SearchResult'
+    setSelectedTrack({
+      id: item.id,
+      name: item.name,
+      artists: [
+        { name: item.artist || item.artists || "Artista Desconhecido" },
+      ],
+      album: {
+        images: [{ url: item.albumCover || "" }],
+      },
+    });
+  };
   // Função principal de Busca (Músicas, Álbuns, Artistas)
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +67,6 @@ export default function Search() {
     setLoading(true);
     setViewMode("search");
 
-    // 🌟 CAPTURA CORRETA: Puxa usando a chave exata do SellSong
     const rawToken = localStorage.getItem("@SellSong:token");
 
     if (!rawToken) {
@@ -74,7 +98,7 @@ export default function Search() {
   // Função para mergulhar nas faixas de um álbum (Drill-down)
   const fetchAlbumTracks = async (albumId: string, albumName: string) => {
     setLoading(true);
-    const rawToken = localStorage.getItem("@SellSong:token"); // 🌟 Ajustado aqui também
+    const rawToken = localStorage.getItem("@SellSong:token");
     const formattedToken =
       rawToken &&
       (rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`);
@@ -86,7 +110,14 @@ export default function Search() {
           headers: { Authorization: formattedToken || "" },
         },
       );
-      setSubResults(response.data);
+
+      const tracksWithCover = response.data.map((track: SearchResult) => ({
+        ...track,
+        albumCover:
+          track.albumCover || results.find((r) => r.id === albumId)?.albumCover,
+      }));
+
+      setSubResults(tracksWithCover);
       setSelectedParentName(albumName);
       setViewMode("album-details");
     } catch (error) {
@@ -99,7 +130,7 @@ export default function Search() {
   // Função para mergulhar nos álbuns de um artista (Drill-down)
   const fetchArtistAlbums = async (artistId: string, artistName: string) => {
     setLoading(true);
-    const rawToken = localStorage.getItem("@SellSong:token"); // 🌟 Ajustado aqui também
+    const rawToken = localStorage.getItem("@SellSong:token");
     const formattedToken =
       rawToken &&
       (rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`);
@@ -227,9 +258,7 @@ export default function Search() {
                 {item.type === "track" && (
                   <button
                     className="btn btn-xs btn-primary rounded-pill fw-semibold shadow-xs"
-                    onClick={() =>
-                      /* Abre seu Modal de postar */ console.log(item)
-                    }
+                    onClick={() => openModal(item)} // 🌟 CORREÇÃO: Passando o item correto
                   >
                     Avaliar
                   </button>
@@ -260,7 +289,10 @@ export default function Search() {
             <div key={subItem.id} className="col-12 col-sm-6">
               <div className="card h-100 border-0 bg-light-subtle rounded-3 p-2 d-flex flex-row align-items-center gap-3">
                 <img
-                  src={subItem.albumCover}
+                  src={
+                    subItem.albumCover ||
+                    results.find((r) => r.id === subItem.albumId)?.albumCover
+                  }
                   alt={subItem.name}
                   className="rounded-2 object-fit-cover shadow-sm"
                   style={{ width: "56px", height: "56px" }}
@@ -271,7 +303,7 @@ export default function Search() {
                   </span>
                   <span className="text-muted x-small text-truncate d-block">
                     {viewMode === "album-details"
-                      ? subItem.artists
+                      ? subItem.artists || selectedParentName
                       : `Lançamento: ${subItem.releaseDate}`}
                   </span>
                 </div>
@@ -280,11 +312,7 @@ export default function Search() {
                 {viewMode === "album-details" ? (
                   <button
                     className="btn btn-xs btn-primary rounded-pill fw-semibold"
-                    onClick={() =>
-                      /* Gatilho do seu modal com subItem */ console.log(
-                        subItem,
-                      )
-                    }
+                    onClick={() => openModal(subItem)} // 🌟 EVOLUÇÃO: Avaliar músicas de dentro do álbum!
                   >
                     Avaliar
                   </button>
@@ -300,6 +328,15 @@ export default function Search() {
             </div>
           ))}
       </div>
+
+      {/* 🌟 MOUNT CONDICIONAL DO MODAL NO FINAL DO COMPONENTE */}
+      {selectedTrack && (
+        <RatingModal
+          track={selectedTrack}
+          onClose={() => setSelectedTrack(null)}
+          onPostCreated={onPostCreated}
+        />
+      )}
     </div>
   );
 }

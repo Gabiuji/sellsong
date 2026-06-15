@@ -1,29 +1,41 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
+interface ConnectionUser {
+  id: number;
+  username: string;
+  avatarUrl: string;
+  bio: string;
+  isFriend?: boolean;
+  isFollowingBack?: boolean;
+}
+
 export default function Settings() {
+  const [subTab, setSubTab] = useState<"profile" | "network">("profile");
+
   const [bio, setBio] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  // Carrega os dados atuais do usuário ao entrar na página
+  const [followers, setFollowers] = useState<ConnectionUser[]>([]);
+  const [following, setFollowing] = useState<ConnectionUser[]>([]);
+
+  const token = localStorage.getItem("@SellSong:token");
+  const formattedToken = token?.startsWith("Bearer ")
+    ? token
+    : `Bearer ${token}`;
+
   useEffect(() => {
     const loadProfileData = async () => {
-      // Pega e formata o token de forma segura dentro do efeito colateral
-      const token = localStorage.getItem("@SellSong:token");
-      const formattedToken = token?.startsWith("Bearer ")
-        ? token
-        : `Bearer ${token}`;
-
       try {
         const response = await axios.get(
           "http://localhost:3000/api/users/profile",
-          { headers: { Authorization: formattedToken } },
+          {
+            headers: { Authorization: formattedToken },
+          },
         );
-
-        // Adicione o "||" para forçar string vazia caso venha null do banco
         setUsername(response.data.username || "");
         setBio(response.data.bio || "");
         setAvatarUrl(response.data.avatarUrl || "");
@@ -32,36 +44,48 @@ export default function Settings() {
       }
     };
     loadProfileData();
-  }, []); // Limpamos a dependência para rodar uma única vez ao montar a tela
+  }, [formattedToken]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  useEffect(() => {
+    if (subTab !== "network") return;
 
-    // Validação opcional de tamanho (ex: limite de 2MB para não sobrecarregar)
-    if (file.size > 2 * 1024 * 1024) {
-      setMessage({ type: "danger", text: "A imagem deve ter no máximo 2MB." });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      // O reader.result conterá a string base64 pronta da imagem
-      setAvatarUrl(reader.result as string);
+    const fetchConnectionsData = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:3000/api/users/connections",
+          {
+            headers: { Authorization: formattedToken },
+          },
+        );
+        setFollowers(response.data.followers);
+        setFollowing(response.data.following);
+      } catch (error) {
+        console.error("Erro ao carregar lista de conexões:", error);
+      }
     };
-    reader.readAsDataURL(file);
+
+    fetchConnectionsData();
+  }, [subTab, formattedToken]);
+
+  const refreshConnectionsAfterUnfollow = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:3000/api/users/connections",
+        {
+          headers: { Authorization: formattedToken },
+        },
+      );
+      setFollowers(response.data.followers);
+      setFollowing(response.data.following);
+    } catch (error) {
+      console.error("Erro ao recarregar conexões:", error);
+    }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage({ type: "", text: "" });
-
-    // 🌟 CORREÇÃO: Pega o token atualizado na hora do clique de salvar
-    const token = localStorage.getItem("@SellSong:token");
-    const formattedToken = token?.startsWith("Bearer ")
-      ? token
-      : `Bearer ${token}`;
 
     try {
       await axios.put(
@@ -69,9 +93,7 @@ export default function Settings() {
         { bio, avatarUrl },
         { headers: { Authorization: formattedToken } },
       );
-      setMessage({ type: "success", text: "Perfil updated com sucesso!" });
-
-      // Força um reload rápido após 1s para atualizar os Widgets laterais com a foto nova
+      setMessage({ type: "success", text: "Perfil atualizado com sucesso!" });
       setTimeout(() => window.location.reload(), 1200);
     } catch (error) {
       console.error("Erro ao salvar perfil:", error);
@@ -84,85 +106,238 @@ export default function Settings() {
     }
   };
 
+  const handleUnfollow = async (targetId: number) => {
+    try {
+      await axios.post(
+        `http://localhost:3000/api/users/${targetId}/follow`,
+        {},
+        {
+          headers: { Authorization: formattedToken },
+        },
+      );
+      refreshConnectionsAfterUnfollow();
+    } catch (error) {
+      console.error("Erro ao dar unfollow:", error);
+    }
+  };
+
   return (
-    <div className="p-3">
-      <div className="d-flex align-items-center mb-4 border-bottom pb-2">
-        <h5 className="fw-bold text-dark m-0">
-          <i className="bi bi-gear-fill text-primary me-2"></i>Configurações da
-          Conta
-        </h5>
+    <div className="p-1">
+      <div className="d-flex gap-3 mb-4 border-bottom pb-2">
+        <button
+          className={`btn btn-sm fw-bold p-0 pb-2 rounded-0 shadow-none bg-transparent border-0 ${
+            subTab === "profile"
+              ? "text-primary border-bottom border-2 border-primary"
+              : "text-muted"
+          }`}
+          onClick={() => setSubTab("profile")}
+        >
+          <i className="bi bi-person-fill-gear me-1"></i> Editar Perfil
+        </button>
+        <button
+          className={`btn btn-sm fw-bold p-0 pb-2 rounded-0 shadow-none bg-transparent border-0 ${
+            subTab === "network"
+              ? "text-primary border-bottom border-2 border-primary"
+              : "text-muted"
+          }`}
+          onClick={() => setSubTab("network")}
+        >
+          <i className="bi bi-person-hearts me-1"></i> Gerenciar Conexões
+        </button>
       </div>
 
-      {message.text && (
-        <div
-          className={`alert alert-${message.type} small py-2 rounded-3`}
-          role="alert"
-        >
-          {message.text}
-        </div>
+      {subTab === "profile" && (
+        <form onSubmit={handleSaveProfile} className="d-flex flex-column gap-3">
+          {message.text && (
+            <div
+              className={`alert alert-${message.type} small py-2 rounded-3`}
+              role="alert"
+            >
+              {message.text}
+            </div>
+          )}
+
+          <div className="text-center bg-light p-3 rounded-4 mb-2">
+            <img
+              src={
+                avatarUrl ||
+                `https://api.dicebear.com/7.x/bottts/svg?seed=${username || "default"}`
+              }
+              alt="Preview"
+              className="rounded-circle border border-3 bg-white shadow-sm p-1 mb-2"
+              style={{ width: "90px", height: "90px", objectFit: "cover" }}
+            />
+            <span className="d-block text-muted x-small">@{username}</span>
+          </div>
+
+          <div>
+            <label className="form-label small fw-semibold text-secondary mb-1">
+              Foto de Perfil
+            </label>
+            <input
+              type="file"
+              className="form-control form-control-sm rounded-3 shadow-none"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onloadend = () => setAvatarUrl(reader.result as string);
+                reader.readAsDataURL(file);
+              }}
+            />
+          </div>
+
+          <div>
+            <label className="form-label small fw-semibold text-secondary mb-1">
+              Descrição / Biografia
+            </label>
+            <textarea
+              className="form-control form-control-sm rounded-3 shadow-none"
+              rows={3}
+              maxLength={160}
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+            />
+            <div className="text-end xx-small text-muted mt-1">
+              {bio?.length || 0}/160 caracteres
+            </div>
+          </div>
+
+          <div className="text-end mt-2">
+            <button
+              type="submit"
+              className="btn btn-sm btn-primary rounded-pill px-4 fw-semibold shadow-sm"
+              disabled={loading}
+            >
+              {loading ? "Salvando..." : "Salvar Alterações"}
+            </button>
+          </div>
+        </form>
       )}
 
-      <form onSubmit={handleSave} className="d-flex flex-column gap-3">
-        {/* Preview do Avatar */}
-        <div className="text-center bg-light p-3 rounded-4 mb-2">
-          <img
-            src={
-              avatarUrl ||
-              `https://api.dicebear.com/7.x/bottts/svg?seed=${username || "default"}`
-            }
-            alt="Preview do perfil"
-            className="rounded-circle border-3 bg-white shadow-sm p-1 mb-2"
-            style={{ width: "90px", height: "90px", objectFit: "cover" }}
-          />
-          <span className="d-block text-muted x-small">@{username}</span>
-        </div>
+      {subTab === "network" && (
+        <div className="d-flex flex-column gap-4">
+          <div>
+            <h6 className="fw-bold text-dark border-bottom pb-1 mb-3 small">
+              <i className="bi bi-arrow-up-right-circle text-primary me-1"></i>{" "}
+              Quem você segue
+            </h6>
+            <div className="d-flex flex-column gap-2">
+              {following.length === 0 ? (
+                <span className="text-muted xx-small text-center d-block py-2">
+                  Você não está seguindo ninguém ainda.
+                </span>
+              ) : (
+                following.map((u) => (
+                  <div
+                    key={u.id}
+                    className="d-flex align-items-center justify-content-between p-2 bg-light rounded-3 border"
+                  >
+                    <div className="d-flex align-items-center gap-2 text-truncate me-2">
+                      <img
+                        src={
+                          u.avatarUrl ||
+                          `https://api.dicebear.com/7.x/bottts/svg?seed=${u.username}`
+                        }
+                        alt={u.username}
+                        className="rounded-circle border bg-white"
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          objectFit: "cover",
+                        }}
+                      />
+                      <div className="text-truncate">
+                        <span className="fw-bold text-dark d-block x-small">
+                          @{u.username}
+                        </span>
+                        {u.isFriend && (
+                          <span className="badge bg-success-subtle text-success-emphasis rounded-pill text-xx-small px-1.5">
+                            🤝 Segue você
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      className="btn btn-xxs btn-outline-danger rounded-pill px-2.5 fw-semibold"
+                      onClick={() => handleUnfollow(u.id)}
+                    >
+                      Deixar de Seguir
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
 
-        {/* Escolher Foto da própria máquina */}
-        <div>
-          <label className="form-label small fw-semibold text-secondary mb-1">
-            Foto de Perfil
-          </label>
-          <input
-            type="file"
-            className="form-control form-control-sm rounded-3 shadow-none"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
-          <div className="form-text xx-small text-muted">
-            Escolha um arquivo JPG, PNG ou SVG do seu computador. Se não
-            escolher nenhum, seu avatar do Dicebear continuará ativo.
+          <div>
+            <h6 className="fw-bold text-dark border-bottom pb-1 mb-3 small">
+              <i className="bi bi-arrow-down-left-circle text-success me-1"></i>{" "}
+              Seus seguidores
+            </h6>
+            <div className="d-flex flex-column gap-2">
+              {followers.length === 0 ? (
+                <span className="text-muted xx-small text-center d-block py-2">
+                  Ninguém segue você ainda.
+                </span>
+              ) : (
+                followers.map((u) => (
+                  <div
+                    key={u.id}
+                    className="d-flex align-items-center justify-content-between p-2 bg-light rounded-3 border"
+                  >
+                    <div className="d-flex align-items-center gap-2 text-truncate me-2">
+                      <img
+                        src={
+                          u.avatarUrl ||
+                          `https://api.dicebear.com/7.x/bottts/svg?seed=${u.username}`
+                        }
+                        alt={u.username}
+                        className="rounded-circle border bg-white"
+                        style={{
+                          width: "36px",
+                          height: "36px",
+                          objectFit: "cover",
+                        }}
+                      />
+                      <div className="text-truncate">
+                        <span className="fw-bold text-dark d-block x-small">
+                          @{u.username}
+                        </span>
+                        {u.isFollowingBack ? (
+                          <span className="badge bg-primary-subtle text-primary-emphasis rounded-pill text-xx-small px-1.5">
+                            🤝 Amigos
+                          </span>
+                        ) : (
+                          <span className="badge bg-secondary-subtle text-secondary-emphasis rounded-pill text-xx-small px-1.5">
+                            Você não segue de volta
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {u.isFollowingBack ? (
+                      <button
+                        className="btn btn-xxs btn-outline-secondary rounded-pill px-2.5"
+                        onClick={() => handleUnfollow(u.id)}
+                      >
+                        Unfollow
+                      </button>
+                    ) : (
+                      <button
+                        className="btn btn-xxs btn-primary rounded-pill px-2.5 fw-bold"
+                        onClick={() => handleUnfollow(u.id)}
+                      >
+                        + Seguir de volta
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
-
-        {/* Descrição / Bio */}
-        <div>
-          <label className="form-label small fw-semibold text-secondary mb-1">
-            Descrição / Biografia
-          </label>
-          <textarea
-            className="form-control form-control-sm rounded-3 shadow-none"
-            rows={3}
-            maxLength={160}
-            placeholder="Conte um pouco sobre seu gosto musical..."
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-          />
-          <div className="text-end xx-small text-muted mt-1">
-            {bio?.length || 0}/160 caracteres
-          </div>
-        </div>
-
-        {/* Botão de Salvar */}
-        <div className="text-end mt-2">
-          <button
-            type="submit"
-            className="btn btn-sm btn-primary rounded-pill px-4 fw-semibold shadow-sm"
-            disabled={loading}
-          >
-            {loading ? "Salvando..." : "Salvar Alterações"}
-          </button>
-        </div>
-      </form>
+      )}
     </div>
   );
 }

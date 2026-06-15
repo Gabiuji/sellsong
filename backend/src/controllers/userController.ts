@@ -214,3 +214,69 @@ export const toggleFollowUser = async (
     res.status(500).json({ error: "Erro interno ao processar solicitação." });
   }
 };
+
+// ==========================================
+// LISTAR CONEXÕES (SEGUIDORES E SEGUINDO)
+// ==========================================
+export const getUserConnections = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const currentUserId = req.user?.userId;
+
+    if (!currentUserId) {
+      res.status(401).json({ error: "Usuário não autenticado." });
+      return;
+    }
+
+    const userIdNum = Number(currentUserId);
+
+    // Puxar quem eu sigo (Following)
+    const followingList = await prisma.follow.findMany({
+      where: { followerId: userIdNum },
+      include: {
+        following: {
+          select: { id: true, username: true, avatarUrl: true, bio: true },
+        },
+      },
+    });
+
+    // Puxar quem me segue (Followers)
+    const followersList = await prisma.follow.findMany({
+      where: { followingId: userIdNum },
+      include: {
+        follower: {
+          select: { id: true, username: true, avatarUrl: true, bio: true },
+        },
+      },
+    });
+
+    // Criamos mapeamentos de IDs para realizar o cruzamento de amizade (follow mútuo)
+    const myFollowingIds = new Set(followingList.map((f) => f.followingId));
+    const myFollowersIds = new Set(followersList.map((f) => f.followerId));
+
+    // Formatar lista de quem eu sigo
+    const following = followingList.map((f: any) => ({
+      id: f.following.id,
+      username: f.following.username,
+      avatarUrl: f.following.avatarUrl,
+      bio: f.following.bio,
+      isFriend: myFollowersIds.has(f.following.id), // É amigo se ele também me segue de volta
+    }));
+
+    // Formatar lista de quem me segue
+    const followers = followersList.map((f: any) => ({
+      id: f.follower.id,
+      username: f.follower.username,
+      avatarUrl: f.follower.avatarUrl,
+      bio: f.follower.bio,
+      isFollowingBack: myFollowingIds.has(f.follower.id), // Flag se eu sigo de volta (Amigos)
+    }));
+
+    res.json({ followers, following });
+  } catch (error) {
+    console.error("Erro ao buscar conexões do usuário:", error);
+    res.status(500).json({ error: "Erro interno ao carregar conexões." });
+  }
+};

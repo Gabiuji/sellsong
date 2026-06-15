@@ -4,6 +4,20 @@ Este arquivo registra a evolução técnica, correções de arquitetura e funcio
 
 ---
 
+## [15/06/2026] - Refatoração do Feed, Sistema de Ranking e Central de Conexões
+
+## 📺 O que foi implementado:
+
+- **Ranking Consolidado ("Bombando no App"):** Substituição da listagem de posts duplicados por um ranking matemático com limite de 10 músicas. Utiliza agrupamento (`groupBy`) no Prisma para calcular a média de notas (`rating`) e o volume de votos de cada faixa.
+- **Feed Exclusivo de Amigos:** Ajuste na query principal da timeline para omitir as próprias publicações do usuário logado, focando estritamente na atividade das contas seguidas.
+- **Diário Musical Pessoal (`Diary.tsx`):** Criação de uma nova view centralizadora onde o usuário gerencia seu histórico completo. Inclui formulário expansível inline com slider numérico para editar nota e comentário em tempo real.
+- **Gerenciamento de Redes Sociais (`Settings.tsx`):** Inclusão de sub-abas dentro das configurações dividindo quem o usuário segue e quem o segue de volta, rotulando amizades mútuas e permitindo ações de unfollow instantâneo.
+
+## 🛠️ Correções Técnicas:
+
+- Resolução de alertas do React Linter eliminando chamadas síncronas de `setState` dentro de `useEffect` (isolas em escopos assíncronos internos).
+- Limpeza de variáveis, imports não utilizados e resolução de conflitos de classes duplicadas no Bootstrap.
+
 ## [14/06/2026] - Estrutura do perfil, função de Follow e Friends, Página de configurações do usuário
 
 ### 🗄️ Ajustes de Banco de Dados e API (Backend)

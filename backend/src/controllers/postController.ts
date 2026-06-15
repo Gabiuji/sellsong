@@ -76,15 +76,40 @@ export const createPost = async (
 };
 
 // ==========================================
-// 2. LISTAR TODOS OS POSTS (FEED GLOBAL)
+// 2. LISTAR POSTS (FEED RELACIONAL / SEGUIDORES)
 // ==========================================
 export const getFeed = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
   try {
-    // Busca os posts do mais recente para o mais antigo
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      res.status(401).json({ error: "Usuário não autenticado." });
+      return;
+    }
+
+    // 1. Descobrir quem o usuário atual segue (pega a lista de IDs de quem eu sigo)
+    const followedUsers = await prisma.follow.findMany({
+      where: {
+        followerId: Number(userId),
+      },
+      select: {
+        followingId: true,
+      },
+    });
+
+    // Mapeia os registros para um array limpo de IDs [id1, id2, ...]
+    const followedIds = followedUsers.map((f) => f.followingId);
+
+    // 2. Buscar os posts onde o autor é o próprio usuário OU está na lista de seguidos
     const posts = await prisma.post.findMany({
+      where: {
+        userId: {
+          in: followedIds, // Inclui os posts dos usuários que sigo
+        },
+      },
       orderBy: {
         createdAt: "desc",
       },
@@ -93,6 +118,7 @@ export const getFeed = async (
           select: {
             id: true,
             username: true,
+            avatarUrl: true,
           },
         },
       },
@@ -100,37 +126,167 @@ export const getFeed = async (
 
     res.json(posts);
   } catch (error) {
-    console.error("Erro ao buscar feed:", error);
+    console.error("Erro ao buscar feed relacional:", error);
     res.status(500).json({ error: "Erro interno ao carregar o feed." });
   }
 };
 
 // ==========================================
-// 3. LISTAR ITENS POPULARES (BOMBANDO NO APP)
+// 3. LISTAR ITENS POPULARES (RANKING DE MÚSICAS MAIS BEM AVALIADAS)
 // ==========================================
 export const getPopularItems = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
   try {
-    // Busca as 4 reviews com as maiores notas de forma recente
-    const popularPosts = await prisma.post.findMany({
-      take: 4,
-      orderBy: [{ rating: "desc" }, { createdAt: "desc" }],
+    // Agrupa os posts por música calculando a média e a contagem
+    const groupData = await prisma.post.groupBy({
+      by: ["spotifyTrackId"],
+      _avg: {
+        rating: true,
+      },
+      _count: {
+        id: true, // Conta quantas pessoas avaliaram
+      },
+      orderBy: {
+        _avg: {
+          rating: "desc", // Maior média de nota no topo
+        },
+      },
+      take: 10, //Limite de 10 músicas no ranking conforme pedido!
+    });
+
+    if (groupData.length === 0) {
+      res.json([]);
+      return;
+    }
+
+    // Coleta os metadados visuais (nome, artista, capa) dessas 10 músicas
+    const trackIds = groupData.map((g) => g.spotifyTrackId);
+
+    const uniqueTracks = await prisma.post.findMany({
+      where: {
+        spotifyTrackId: { in: trackIds },
+      },
       select: {
-        id: true,
+        spotifyTrackId: true,
         trackName: true,
         artistName: true,
         albumCover: true,
-        rating: true,
       },
+      distinct: ["spotifyTrackId"], // Garante que cada música só venha uma vez aqui
     });
 
-    res.json(popularPosts);
+    // Junta os dados do grupo com os dados visuais das faixas
+    const ranking = groupData.map((group) => {
+      const visualInfo = uniqueTracks.find(
+        (t) => t.spotifyTrackId === group.spotifyTrackId,
+      );
+
+      return {
+        spotifyTrackId: group.spotifyTrackId,
+        trackName: visualInfo?.trackName || "Música Desconhecida",
+        artistName: visualInfo?.artistName || "Artista Desconhecido",
+        albumCover: visualInfo?.albumCover || "",
+        averageRating: Number(group._avg.rating?.toFixed(2) || 0), // Média com 2 casas decimais
+        reviewCount: group._count.id, // Guarda quantas pessoas votaram (legal para desempatar no futuro)
+      };
+    });
+
+    res.json(ranking);
   } catch (error) {
-    console.error("Erro ao buscar populares:", error);
+    console.error("Erro ao calcular ranking popular:", error);
     res
       .status(500)
       .json({ error: "Erro interno ao carregar itens populares." });
+  }
+};
+
+// ==========================================
+// 4. LISTAR MEUS PRÓPRIOS POSTS (DIÁRIO)
+// ==========================================
+export const getMyDiary = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      res.status(401).json({ error: "Usuário não autenticado." });
+      return;
+    }
+
+    const myPosts = await prisma.post.findMany({
+      where: {
+        userId: Number(userId),
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    res.json(myPosts);
+  } catch (error) {
+    console.error("Erro ao carregar diário:", error);
+    res.status(500).json({ error: "Erro interno ao carregar o diário." });
+  }
+};
+
+// ==========================================
+// 5. EDITAR UMA REVIEW EXISTENTE
+// ==========================================
+export const updatePost = async (
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> => {
+  try {
+    const userId = req.user?.userId;
+    const postId = Number(req.params.id);
+    const { rating, review } = req.body;
+
+    if (!userId) {
+      res.status(401).json({ error: "Usuário não autenticado." });
+      return;
+    }
+
+    // 1. Busca o post para garantir que ele existe e pertence ao usuário logado
+    const existingPost = await prisma.post.findUnique({
+      where: { id: postId },
+    });
+
+    if (!existingPost) {
+      res.status(404).json({ error: "Publicação não encontrada." });
+      return;
+    }
+
+    if (existingPost.userId !== Number(userId)) {
+      res
+        .status(403)
+        .json({ error: "Você não tem permissão para editar este post." });
+      return;
+    }
+
+    // 2. Valida a nota se ela foi enviada
+    if (rating !== undefined && (rating < 0.5 || rating > 5)) {
+      res
+        .status(400)
+        .json({ error: "A nota deve ser entre 0.5 e 5 estrelas." });
+      return;
+    }
+
+    // 3. Atualiza os dados no banco
+    const updated = await prisma.post.update({
+      where: { id: postId },
+      data: {
+        rating: rating !== undefined ? Number(rating) : undefined,
+        review: review !== undefined ? review : undefined,
+      },
+    });
+
+    res.json({ message: "Review atualizada com sucesso!", post: updated });
+  } catch (error) {
+    console.error("Erro ao atualizar post:", error);
+    res.status(500).json({ error: "Erro interno ao atualizar post." });
   }
 };
