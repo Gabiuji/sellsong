@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key";
 
 // ==========================================
-// 1. REGISTRO / CADASTRO DE USUÁRIO
+// REGISTRO / CADASTRO DE USUÁRIO
 // ==========================================
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -66,7 +66,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 };
 
 // ==========================================
-// 2. LOGIN / AUTENTICAÇÃO
+// LOGIN / AUTENTICAÇÃO
 // ==========================================
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {

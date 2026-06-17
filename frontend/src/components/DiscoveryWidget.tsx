@@ -6,7 +6,7 @@ interface PopularItem {
   trackName: string;
   artistName: string;
   albumCover: string;
-  averageRating: number; //Atualizado para refletir a média calculada
+  averageRating: number; // Média de avaliações para a música
   reviewCount: number;
 }
 

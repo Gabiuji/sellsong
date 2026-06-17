@@ -1,184 +1,169 @@
-.counter {
-  font-size: 16px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  color: var(--accent);
-  background: var(--accent-bg);
-  border: 2px solid transparent;
-  transition: border-color 0.3s;
-  margin-bottom: 24px;
+/* SOBREPOSIÇÃO DAS CORES DO BOOTSTRAP PARA O MODO ESCURO */
 
-  &:hover {
-    border-color: var(--accent-border);
-  }
-  &:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
+/* Transforma os cards brancos em blocos Midnight */
+.card,
+.bg-white {
+  background-color: var(--bg-container) !important;
+  color: var(--text-primary) !important;
 }
 
-.hero {
-  position: relative;
-
-  .base,
-  .framework,
-  .vite {
-    inset-inline: 0;
-    margin: 0 auto;
-  }
-
-  .base {
-    width: 170px;
-    position: relative;
-    z-index: 0;
-  }
-
-  .framework,
-  .vite {
-    position: absolute;
-  }
-
-  .framework {
-    z-index: 1;
-    top: 34px;
-    height: 28px;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(44deg) rotateY(39deg)
-      scale(1.4);
-  }
-
-  .vite {
-    z-index: 0;
-    top: 107px;
-    height: 26px;
-    width: auto;
-    transform: perspective(2000px) rotateZ(300deg) rotateX(40deg) rotateY(39deg)
-      scale(0.8);
-  }
+/* Transforma os fundos cinzas claros (como caixas de posts e inputs de busca) */
+.bg-light,
+.bg-light-subtle {
+  background-color: rgba(
+    58,
+    80,
+    107,
+    0.25
+  ) !important; /* Starlight Blue com opacidade */
+  color: var(--text-primary) !important;
 }
 
-#center {
-  display: flex;
-  flex-direction: column;
-  gap: 25px;
-  place-content: center;
-  place-items: center;
-  flex-grow: 1;
-
-  @media (max-width: 1024px) {
-    padding: 32px 20px 24px;
-    gap: 18px;
-  }
+/* Ajuste de Bordas do Sistema */
+.border,
+.border-bottom,
+.border-top,
+.border-start {
+  border-color: var(--border-color) !important;
 }
 
-#next-steps {
-  display: flex;
-  border-top: 1px solid var(--border);
-  text-align: left;
-
-  & > div {
-    flex: 1 1 0;
-    padding: 32px;
-    @media (max-width: 1024px) {
-      padding: 24px 20px;
-    }
-  }
-
-  .icon {
-    margin-bottom: 16px;
-    width: 22px;
-    height: 22px;
-  }
-
-  @media (max-width: 1024px) {
-    flex-direction: column;
-    text-align: center;
-  }
+/* Ajuste de Textos */
+.text-dark,
+.modal-title {
+  color: var(--text-primary) !important;
 }
 
-#docs {
-  border-right: 1px solid var(--border);
-
-  @media (max-width: 1024px) {
-    border-right: none;
-    border-bottom: 1px solid var(--border);
-  }
+.text-muted {
+  color: var(--text-muted) !important;
 }
 
-#next-steps ul {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  gap: 8px;
-  margin: 32px 0 0;
-
-  .logo {
-    height: 18px;
-  }
-
-  a {
-    color: var(--text-h);
-    font-size: 16px;
-    border-radius: 6px;
-    background: var(--social-bg);
-    display: flex;
-    padding: 6px 12px;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: box-shadow 0.3s;
-
-    &:hover {
-      box-shadow: var(--shadow);
-    }
-    .button-icon {
-      height: 18px;
-      width: 18px;
-    }
-  }
-
-  @media (max-width: 1024px) {
-    margin-top: 20px;
-    flex-wrap: wrap;
-    justify-content: center;
-
-    li {
-      flex: 1 1 calc(50% - 8px);
-    }
-
-    a {
-      width: 100%;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
+/* Injeção da cor da marca nos elementos principais */
+.text-primary,
+.bi-music-note,
+.bi-gear-fill,
+.bi-people-fill,
+.bi-journal-album {
+  color: var(--accent-color) !important;
 }
 
-#spacer {
-  height: 88px;
-  border-top: 1px solid var(--border);
-  @media (max-width: 1024px) {
-    height: 48px;
-  }
+/* Botões do Sistema */
+.btn-primary {
+  background-color: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
+  color: var(
+    --bg-principal
+  ) !important; /* Texto escuro dentro do botão neon dá alto contraste */
 }
 
-.ticks {
-  position: relative;
-  width: 100%;
+.btn-primary:hover {
+  background-color: #56cfe1 !important;
+  border-color: #56cfe1 !important;
+}
 
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
+.btn-outline-secondary {
+  color: var(--text-muted) !important;
+  border-color: var(--border-color) !important;
+}
 
-  &::before {
-    left: 0;
-    border-left-color: var(--border);
-  }
-  &::after {
-    right: 0;
-    border-right-color: var(--border);
-  }
+.btn-outline-secondary:hover {
+  background-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Inputs de Texto e Textareas */
+.form-control {
+  background-color: rgba(11, 19, 43, 0.5) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.form-control::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.7;
+}
+
+.form-control:focus {
+  border-color: var(--accent-color) !important;
+}
+
+/* Customização da Logo em Gradiente Neon */
+.navbar-brand,
+.brand-logo {
+  background: linear-gradient(45deg, var(--accent-color), #56cfe1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+/* ==========================================
+   CUSTOMIZAÇÃO DOS MODAIS (TEMA MIDNIGHT)
+   ========================================== */
+
+/* Força o fundo do modal a ser escuro e aplica uma borda sutil */
+.modal-content {
+  background-color: var(--bg-container) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+/* Garante o contraste do título principal */
+.modal-header .modal-title {
+  color: var(--text-primary) !important;
+  font-weight: 700 !important;
+}
+
+/* Customiza o botão de fechar (X) para o modo escuro */
+.modal-header .btn-close {
+  filter: invert(1) grayscale(1) brightness(2); /* Deixa o "X" branco */
+  opacity: 0.8;
+}
+
+.modal-header .btn-close:hover {
+  opacity: 1;
+}
+
+/* Estilização da caixa de texto (Review) dentro do modal */
+.modal-body textarea.form-control {
+  background-color: var(--bg-principal) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.modal-body textarea.form-control::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.5;
+}
+
+/* Ajuste dos botões de rodapé do modal */
+.modal-footer .btn-light,
+.modal-body .btn-light {
+  background-color: rgba(58, 80, 107, 0.4) !important;
+  border-color: transparent !important;
+  color: var(--text-primary) !important;
+}
+
+.modal-footer .btn-light:hover,
+.modal-body .btn-light:hover {
+  background-color: rgba(58, 80, 107, 0.6) !important;
+}
+
+/* Estilização fina para o botão "btn-xs" ou secundários que fiquem no modal */
+.modal-body .btn-primary,
+.modal-footer .btn-primary {
+  background-color: var(--accent-color) !important;
+  border-color: var(--accent-color) !important;
+  color: var(--bg-principal) !important;
+}
+
+/* Ajuste específico para os labels e textos informativos secundários */
+.modal-body label,
+.modal-body .text-muted {
+  color: var(--text-muted) !important;
+}
+
+/* Alinhamento do slider (input range) */
+.modal-body .form-range::-webkit-slider-runnable-track {
+  background-color: var(--bg-principal);
+  border-radius: 10px;
 }

@@ -2,12 +2,27 @@
 @import "bootstrap/dist/css/bootstrap.min.css";
 @import "bootstrap-icons/font/bootstrap-icons.css";
 
-/* Estilos globais customizados para o SellSong se precisar */
+:root {
+  /* Variáveis da Paleta Midnight do SellSong */
+  --bg-principal: #0b132b; /* Deep Navy (Fundo total) */
+  --bg-container: #1c2541; /* Midnight Blue (Cards e Menus) */
+  --border-color: #3a506b; /* Starlight Blue (Bordas e Divisores) */
+  --accent-color: #4ea8de; /* Electric Neon (Destaques e Botões) */
+  --text-primary: #f4f7f6; /* Ice White (Títulos) */
+  --text-muted: #8e9aaf; /* Muted Gray (Subtextos/Bios) */
+}
+
+/* Forçando html e body a assumirem o Deep Navy com prioridade máxima */
+html,
 body {
-  background-color: #f8f9fa;
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-principal) !important;
+  color: var(--text-primary) !important;
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
     sans-serif;
+  transition: background-color 0.3s ease;
 }
 
 /* Animação suave de flutuação para o Vinil da Landing Page */
@@ -33,4 +48,38 @@ body {
 }
 .x-small {
   font-size: 0.75rem;
+}
+
+/* Utilitários extras de tamanho de texto para layouts densos e scannáveis */
+.xx-small {
+  font-size: 0.7rem !important;
+}
+
+.x-small {
+  font-size: 0.8rem !important;
+}
+
+.uppercase {
+  text-transform: uppercase;
+}
+
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+
+/* Limitador de linhas para reviews longas no feed */
+.text-truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.transition {
+  transition: all 0.2s ease-in-out;
+}
+
+.hover-shadow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }

@@ -37,7 +37,7 @@ export default function Search({ onPostCreated }: SearchProps) {
   const [selectedParentName, setSelectedParentName] = useState("");
   const [subResults, setSubResults] = useState<SearchResult[]>([]);
 
-  // 🌟 Armazena o item formatado para o Modal aceitar o padrão do Spotify
+  // Armazena o item formatado para o Modal aceitar o padrão do Spotify
   const [selectedTrack, setSelectedTrack] = useState<{
     id: string;
     name: string;
@@ -47,7 +47,6 @@ export default function Search({ onPostCreated }: SearchProps) {
 
   // Função adaptadora para transformar o nosso SearchResult no padrão que o RatingModal espera
   const openModal = (item: SearchResult) => {
-    // 🌟 Substituído 'any' por 'SearchResult'
     setSelectedTrack({
       id: item.id,
       name: item.name,
@@ -154,7 +153,7 @@ export default function Search({ onPostCreated }: SearchProps) {
 
   return (
     <div className="p-3">
-      {/* 1. SELETOR DE ABAS (TABS) */}
+      {/* SELETOR DE ABAS (TABS) */}
       {viewMode === "search" && (
         <div className="d-flex justify-content-center gap-2 mb-3">
           {(["track", "album", "artist"] as const).map((type) => (
@@ -179,7 +178,7 @@ export default function Search({ onPostCreated }: SearchProps) {
         </div>
       )}
 
-      {/* 2. BARRA DE BUSCA FORMULÁRIO */}
+      {/* BARRA DE BUSCA FORMULÁRIO */}
       {viewMode === "search" && (
         <form onSubmit={handleSearch} className="mb-4">
           <div className="input-group bg-light rounded-pill p-1 border">
@@ -203,7 +202,7 @@ export default function Search({ onPostCreated }: SearchProps) {
         </form>
       )}
 
-      {/* 3. BOTÃO VOLTAR (CASO ESTEJA EM SUB-TELAS) */}
+      {/* BOTÃO VOLTAR (CASO ESTEJA EM SUB-TELAS) */}
       {viewMode !== "search" && (
         <div className="d-flex align-items-center mb-4 bg-light p-2 rounded-3">
           <button
@@ -230,7 +229,7 @@ export default function Search({ onPostCreated }: SearchProps) {
         </div>
       )}
 
-      {/* 4. RENDERIZAÇÃO DOS CARDS DINÂMICOS */}
+      {/* RENDERIZAÇÃO DOS CARDS DINÂMICOS */}
       <div className="row g-3">
         {/* Renderiza resultados principais da busca */}
         {viewMode === "search" &&
@@ -258,7 +257,7 @@ export default function Search({ onPostCreated }: SearchProps) {
                 {item.type === "track" && (
                   <button
                     className="btn btn-xs btn-primary rounded-pill fw-semibold shadow-xs"
-                    onClick={() => openModal(item)} // 🌟 CORREÇÃO: Passando o item correto
+                    onClick={() => openModal(item)} // Passando o item correto
                   >
                     Avaliar
                   </button>
@@ -312,7 +311,7 @@ export default function Search({ onPostCreated }: SearchProps) {
                 {viewMode === "album-details" ? (
                   <button
                     className="btn btn-xs btn-primary rounded-pill fw-semibold"
-                    onClick={() => openModal(subItem)} // 🌟 EVOLUÇÃO: Avaliar músicas de dentro do álbum!
+                    onClick={() => openModal(subItem)} //Avaliar músicas de dentro do álbum!
                   >
                     Avaliar
                   </button>
@@ -329,7 +328,7 @@ export default function Search({ onPostCreated }: SearchProps) {
           ))}
       </div>
 
-      {/* 🌟 MOUNT CONDICIONAL DO MODAL NO FINAL DO COMPONENTE */}
+      {/* MOUNT CONDICIONAL DO MODAL NO FINAL DO COMPONENTE */}
       {selectedTrack && (
         <RatingModal
           track={selectedTrack}

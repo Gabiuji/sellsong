@@ -66,7 +66,7 @@ export default function ProfileWidget() {
           </p>
         )}
 
-        {/* 📊 PAINEL DE MÉTRICAS COMPACTO */}
+        {/* PAINEL DE MÉTRICAS COMPACTO */}
         <div className="w-100 border-top mt-3 pt-3 d-flex justify-content-between align-items-center px-1">
           <div className="text-center grow">
             <span className="fw-bold text-primary d-block small">

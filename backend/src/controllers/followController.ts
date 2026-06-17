@@ -5,7 +5,7 @@ import { AuthenticatedRequest } from "../middlewares/authMiddleware.js";
 const prisma = new PrismaClient();
 
 // ==========================================
-// 1. SEGUIR / DEIXAR DE SEGUIR UM USUÁRIO
+// SEGUIR / DEIXAR DE SEGUIR UM USUÁRIO
 // ==========================================
 export const toggleFollow = async (
   req: AuthenticatedRequest,
@@ -84,7 +84,7 @@ export const toggleFollow = async (
 };
 
 // ==========================================
-// 2. LISTAR SEGUIDORES E SEGUIDOS DE UM PERFIL
+// LISTAR SEGUIDORES E SEGUIDOS DE UM PERFIL
 // ==========================================
 export const getNetwork = async (
   req: AuthenticatedRequest,

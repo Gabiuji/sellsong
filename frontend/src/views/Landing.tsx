@@ -5,7 +5,7 @@ interface LandingProps {
 export default function Landing({ onEnter }: LandingProps) {
   return (
     <div className="d-flex flex-column min-vh-100 bg-light">
-      {/* 1. CABEÇALHO (NAVBAR) */}
+      {/* CABEÇALHO (NAVBAR) */}
       <nav className="navbar navbar-expand-lg navbar-white bg-white shadow-sm sticky-top py-3">
         <div className="container">
           <span className="navbar-brand fw-bold text-primary d-flex align-items-center fs-3">
@@ -20,7 +20,7 @@ export default function Landing({ onEnter }: LandingProps) {
         </div>
       </nav>
 
-      {/* 2. SEÇÃO HERO (APRESENTAÇÃO PRINCIPAL) */}
+      {/* SEÇÃO HERO (APRESENTAÇÃO PRINCIPAL) */}
       <header className="py-5 my-auto bg-white border-bottom">
         <div className="container my-4">
           <div className="row align-items-center g-5">
@@ -72,7 +72,7 @@ export default function Landing({ onEnter }: LandingProps) {
         </div>
       </header>
 
-      {/* 3. SEÇÃO DE RECURSOS */}
+      {/* SEÇÃO DE RECURSOS */}
       <section id="recursos" className="py-5 bg-light">
         <div className="container py-4">
           <div className="text-center mb-5">
@@ -128,7 +128,7 @@ export default function Landing({ onEnter }: LandingProps) {
         </div>
       </section>
 
-      {/* 4. RODAPÉ */}
+      {/* RODAPÉ */}
       <footer className="py-4 bg-dark text-white-50 mt-auto border-top border-secondary">
         <div className="container text-center small">
           <p className="m-0">

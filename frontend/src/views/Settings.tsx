@@ -27,6 +27,7 @@ export default function Settings() {
     ? token
     : `Bearer ${token}`;
 
+  // Carrega os dados do perfil ao montar o componente
   useEffect(() => {
     const loadProfileData = async () => {
       try {
@@ -46,6 +47,7 @@ export default function Settings() {
     loadProfileData();
   }, [formattedToken]);
 
+  // Carrega seguidores e seguindo quando a aba "network" é selecionada
   useEffect(() => {
     if (subTab !== "network") return;
 
@@ -67,6 +69,7 @@ export default function Settings() {
     fetchConnectionsData();
   }, [subTab, formattedToken]);
 
+  // Função para recarregar conexões após dar unfollow, garantindo que a interface esteja sempre atualizada
   const refreshConnectionsAfterUnfollow = async () => {
     try {
       const response = await axios.get(
@@ -82,6 +85,7 @@ export default function Settings() {
     }
   };
 
+  // Função para salvar as alterações do perfil, incluindo upload de avatar e atualização de bio
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -106,6 +110,7 @@ export default function Settings() {
     }
   };
 
+  // Função para dar unfollow em um usuário, com recarga automática da lista de conexões após a ação
   const handleUnfollow = async (targetId: number) => {
     try {
       await axios.post(

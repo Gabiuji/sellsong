@@ -5,7 +5,7 @@ import { AuthenticatedRequest } from "../middlewares/authMiddleware.js";
 const prisma = new PrismaClient();
 
 // ==========================================
-// 1. CRIAR UM NOVO POST (REVIEW DE MÚSICA)
+// CRIAR UM NOVO POST (REVIEW DE MÚSICA)
 // ==========================================
 export const createPost = async (
   req: AuthenticatedRequest,
@@ -38,7 +38,7 @@ export const createPost = async (
       return;
     }
 
-    // 🌟 ALTERAÇÃO 1: Valida se a nota estilo Letterboxd está entre 0.5 e 5
+    // Valida se a nota estilo Letterboxd está entre 0.5 e 5
     if (rating < 0.5 || rating > 5) {
       res
         .status(400)
@@ -76,7 +76,7 @@ export const createPost = async (
 };
 
 // ==========================================
-// 2. LISTAR POSTS (FEED RELACIONAL / SEGUIDORES)
+// LISTAR POSTS (FEED RELACIONAL / SEGUIDORES)
 // ==========================================
 export const getFeed = async (
   req: AuthenticatedRequest,
@@ -90,7 +90,7 @@ export const getFeed = async (
       return;
     }
 
-    // 1. Descobrir quem o usuário atual segue (pega a lista de IDs de quem eu sigo)
+    // Descobrir quem o usuário atual segue (pega a lista de IDs de quem eu sigo)
     const followedUsers = await prisma.follow.findMany({
       where: {
         followerId: Number(userId),
@@ -103,7 +103,7 @@ export const getFeed = async (
     // Mapeia os registros para um array limpo de IDs [id1, id2, ...]
     const followedIds = followedUsers.map((f) => f.followingId);
 
-    // 2. Buscar os posts onde o autor é o próprio usuário OU está na lista de seguidos
+    // Buscar os posts onde o autor é o próprio usuário OU está na lista de seguidos
     const posts = await prisma.post.findMany({
       where: {
         userId: {
@@ -132,7 +132,7 @@ export const getFeed = async (
 };
 
 // ==========================================
-// 3. LISTAR ITENS POPULARES (RANKING DE MÚSICAS MAIS BEM AVALIADAS)
+// LISTAR ITENS POPULARES (RANKING DE MÚSICAS MAIS BEM AVALIADAS)
 // ==========================================
 export const getPopularItems = async (
   req: AuthenticatedRequest,
@@ -203,7 +203,7 @@ export const getPopularItems = async (
 };
 
 // ==========================================
-// 4. LISTAR MEUS PRÓPRIOS POSTS (DIÁRIO)
+// LISTAR MEUS PRÓPRIOS POSTS (DIÁRIO)
 // ==========================================
 export const getMyDiary = async (
   req: AuthenticatedRequest,
@@ -234,7 +234,7 @@ export const getMyDiary = async (
 };
 
 // ==========================================
-// 5. EDITAR UMA REVIEW EXISTENTE
+// EDITAR UMA REVIEW EXISTENTE
 // ==========================================
 export const updatePost = async (
   req: AuthenticatedRequest,
@@ -250,7 +250,7 @@ export const updatePost = async (
       return;
     }
 
-    // 1. Busca o post para garantir que ele existe e pertence ao usuário logado
+    // Busca o post para garantir que ele existe e pertence ao usuário logado
     const existingPost = await prisma.post.findUnique({
       where: { id: postId },
     });
@@ -267,7 +267,7 @@ export const updatePost = async (
       return;
     }
 
-    // 2. Valida a nota se ela foi enviada
+    // Valida a nota se ela foi enviada
     if (rating !== undefined && (rating < 0.5 || rating > 5)) {
       res
         .status(400)
@@ -275,7 +275,7 @@ export const updatePost = async (
       return;
     }
 
-    // 3. Atualiza os dados no banco
+    // Atualiza os dados no banco
     const updated = await prisma.post.update({
       where: { id: postId },
       data: {

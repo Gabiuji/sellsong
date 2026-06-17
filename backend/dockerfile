@@ -1,23 +1,23 @@
-# 1. Usa a imagem oficial do Node 24 (LTS) como base
+# Usa a imagem oficial do Node 24 (LTS) como base
 FROM node:24-alpine
 
-# 2. Define a pasta de trabalho dentro do container
+# Define a pasta de trabalho dentro do container
 WORKDIR /app
 
-# 3. Copia os arquivos de dependências primeiro (otimiza o cache do Docker)
+# Copia os arquivos de dependências primeiro (otimiza o cache do Docker)
 COPY package*.json ./
 
-# 4. Instala as dependências do projeto
+# Instala as dependências do projeto
 RUN npm install
 
-# 5. Copia todo o restante do código do backend para o container
+# Copia todo o restante do código do backend para o container
 COPY . .
 
-# 6. Gera o Prisma Client dentro do container para garantir as tipagens
+# Gera o Prisma Client dentro do container para garantir as tipagens
 RUN npx prisma generate
 
-# 7. Expõe a porta 3000 que o seu servidor usa
+# Expõe a porta 3000 que o seu servidor usa
 EXPOSE 3000
 
-# 8. Comando para rodar o app em modo de desenvolvimento
+# Comando para rodar o app em modo de desenvolvimento
 CMD ["npm", "run", "dev"]

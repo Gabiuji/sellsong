@@ -1,4 +1,4 @@
-# 🎵 SellSong — Rede Social de Recomendações Musicais
+# SellSong — Rede Social de Recomendações Musicais
 
 O **SellSong** é uma plataforma web de nicho voltada para a curadoria, descoberta e compartilhamento de músicas, inspirada na dinâmica visual e estrutural de redes sociais de cinema como o _Letterboxd_.
 
@@ -6,7 +6,7 @@ A proposta central do aplicativo é permitir que os usuários façam **recomenda
 
 ---
 
-## 🚀 Funcionalidades Principais (Escopo do Projeto)
+## Funcionalidades Principais (Escopo do Projeto)
 
 - **Feed Estilo "Stories" (Recomendações Diárias):** Um feed dinâmico onde os usuários compartilham uma única música por dia com uma breve descrição (limite de 150 caracteres) e a tag do gênero musical.
 - **Integração Musical:** Integração com APIs de streaming para busca de faixas oficiais (título, artista, álbum e capa).
@@ -17,7 +17,7 @@ A proposta central do aplicativo é permitir que os usuários façam **recomenda
 
 ---
 
-## 🛠️ Stack Tecnológica & Ferramentas
+## Stack Tecnológica & Ferramentas
 
 O projeto adota uma arquitetura descentralizada (Decoupled Architecture), separando completamente as responsabilidades do ecossistema do cliente (Frontend) e do servidor (Backend).
 
@@ -39,7 +39,7 @@ O projeto adota uma arquitetura descentralizada (Decoupled Architecture), separa
 
 ---
 
-## 📂 Arquitetura do Repositório
+## Arquitetura do Repositório
 
 ```text
 sellsong/

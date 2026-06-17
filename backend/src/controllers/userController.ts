@@ -4,7 +4,7 @@ import { AuthenticatedRequest } from "../middlewares/authMiddleware.js";
 
 const prisma = new PrismaClient();
 
-// 1. BUSCAR PERFIL COMPLETO
+// BUSCAR PERFIL COMPLETO
 export const getUserProfile = async (
   req: AuthenticatedRequest,
   res: Response,
@@ -60,7 +60,7 @@ export const getUserProfile = async (
   }
 };
 
-// 2.ATUALIZAR PERFIL (BIO E AVATAR)
+// ATUALIZAR PERFIL (BIO E AVATAR)
 export const updateUserProfile = async (
   req: AuthenticatedRequest,
   res: Response,

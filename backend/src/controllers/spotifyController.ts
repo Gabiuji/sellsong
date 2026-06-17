@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import axios from "axios";
 
 // Helper para pegar o Token do Spotify (reutilize a lógica que você já tem implementada)
-// Se você já tiver um serviço/middleware que injeta o token, pode pular essa declaração.
 const getSpotifyClientToken = async (): Promise<string> => {
   const credentials = Buffer.from(
     `${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`,
@@ -20,7 +19,7 @@ const getSpotifyClientToken = async (): Promise<string> => {
   return response.data.access_token;
 };
 
-// 1. BUSCA FILTRADA (Música, Álbum ou Artista)
+// BUSCA FILTRADA (Música, Álbum ou Artista)
 export const searchSpotify = async (
   req: Request,
   res: Response,
@@ -44,7 +43,6 @@ export const searchSpotify = async (
       params: {
         q: String(q),
         type: searchType,
-        // 🌟 REMOVIDO O LIMIT DAQUI TEMPORARIAMENTE
       },
     });
 
@@ -76,12 +74,12 @@ export const searchSpotify = async (
         id: item.id,
         type: "artist",
         name: item.name,
-        // 🌟 PROTEÇÃO: Verifica se existem gêneros listados antes de fatiar o array
+        // Verifica se existem gêneros listados antes de fatiar o array
         genres:
           item.genres && item.genres.length > 0
             ? item.genres.slice(0, 2).join(", ")
             : "Musical",
-        // 🌟 PROTEÇÃO: Se o artista não tiver nenhuma imagem, injeta um placeholder em vez de quebrar o código
+        // Verifica se o artista não tiver nenhuma imagem, injeta um placeholder em vez de quebrar o código
         avatar:
           item.images && item.images[0]
             ? item.images[0].url
@@ -104,7 +102,7 @@ export const searchSpotify = async (
   }
 };
 
-// 2. BUSCAR ÁLBUNS DE UM ARTISTA
+// BUSCAR ÁLBUNS DE UM ARTISTA
 export const getArtistAlbums = async (
   req: Request,
   res: Response,
@@ -136,7 +134,7 @@ export const getArtistAlbums = async (
   }
 };
 
-// 3. BUSCAR MÚSICAS DE UM ÁLBUM (TRACKLIST)
+// BUSCAR MÚSICAS DE UM ÁLBUM (TRACKLIST)
 export const getAlbumTracks = async (
   req: Request,
   res: Response,
@@ -145,7 +143,7 @@ export const getAlbumTracks = async (
     const { id } = req.params;
     const token = await getSpotifyClientToken();
 
-    // 1. Buscamos os dados do Álbum Pai primeiro para herdar a capa e o nome
+    // Buscamos os dados do Álbum Pai primeiro para herdar a capa e o nome
     const albumInfo = await axios.get(
       `https://api.spotify.com/v1/albums/${id}`,
       {
@@ -153,7 +151,7 @@ export const getAlbumTracks = async (
       },
     );
 
-    // 2. Buscamos as faixas de dentro dele
+    // Buscamos as faixas de dentro dele
     const response = await axios.get(
       `https://api.spotify.com/v1/albums/${id}/tracks`,
       {

@@ -61,7 +61,7 @@ export default function Diary() {
     fetchDiaryData();
   }, [formattedToken]); // Sincroniza baseado no token de autenticação
 
-  // 🌟 FUNÇÃO AUXILIAR: Mantemos uma versão isolada para re-chamada apenas após atualizações (updates)
+  // Mantemos uma versão isolada para re-chamada apenas após atualizações (updates)
   const refreshDiaryAfterUpdate = async () => {
     try {
       const response = await axios.get(
@@ -90,7 +90,7 @@ export default function Diary() {
         { headers: { Authorization: formattedToken } },
       );
       setEditingId(null);
-      refreshDiaryAfterUpdate(); // 🌟 Atualiza o estado pontualmente sem disparar efeitos em cascata
+      refreshDiaryAfterUpdate(); // Atualiza o estado pontualmente sem disparar efeitos em cascata
     } catch (error) {
       console.error("Erro ao atualizar post:", error);
       alert("Erro ao salvar alterações.");
