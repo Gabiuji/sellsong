@@ -4,6 +4,28 @@ Este arquivo registra a evolução técnica, correções de arquitetura e funcio
 
 ---
 
+## [17/06/2026] - Stories de recomendações musicais
+
+A funcionalidade de recomendações diárias estilo Stories foi totalmente implementada, integrada ao ecossistema do Spotify e blindada contra falhas de restrição de catálogo através de um fallback de redirecionamento.
+
+## Modificações Realizadas
+
+### Backend & Persistência (Node.js, Prisma, MySQL)
+
+- **Ajuste de Atenticação:** Correção do fluxo de sessão para garantir o armazenamento consistente do objeto de usuário no frontend, mitigando problemas de validação de propriedade do Story.
+- **Evolução do Schema (`DailyStory`):** Adicionada a coluna `spotifyUrl` para persistir o link de redirecionamento externo da API do Spotify (`external_urls.spotify`).
+- **Mapeamento de Busca:** Ajustado o controller do Spotify (`searchSpotify`) para mapear e despachar tanto a propriedade `previewUrl` (via CamelCase) quanto a nova propriedade `spotifyUrl`.
+
+### Frontend (React, TypeScript, Bootstrap)
+
+- **StoryPanel (Visualização):**
+  - Corrigida a lógica de renderização do botão de exclusão (Lixeira). Agora, ele compara rigorosamente o `loggedInUsername` extraído do JSON armazenado na sessão contra o `author.username` do Story ativo, eliminando exibições em contas de terceiros.
+  - Implementação de tratamento contra propriedades nulas ou indefinidas (`?`), prevenindo quebras de renderização na interface.
+  - Inclusão do botão de ação rápida **"Ouvir no Spotify"**, permitindo que o usuário ouça a faixa completa diretamente na plataforma vizinha quando a micro-audição oficial estiver sob retenção de direitos autorais.
+- **CreateStoryModal (Criação):**
+  - Atualizada a interface `Track` para comportar a propriedade `spotifyUrl`.
+  - Ajustado o payload de envio no método `handlePublishStory` para encaminhar corretamente as referências ao backend.
+
 ## [16/06/2026] - Ajustes e Nova Identidade Visual
 
 ## O que foi implementado:

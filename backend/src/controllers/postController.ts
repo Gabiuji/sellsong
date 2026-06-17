@@ -76,38 +76,33 @@ export const createPost = async (
 };
 
 // ==========================================
-// LISTAR POSTS (FEED RELACIONAL / SEGUIDORES)
+// LISTAR TIMELINE (POSTS DE QUEM EU SEGUO)
 // ==========================================
 export const getFeed = async (
   req: AuthenticatedRequest,
   res: Response,
 ): Promise<void> => {
   try {
-    const userId = req.user?.userId;
+    const currentUserId = Number(req.user?.userId);
 
-    if (!userId) {
+    if (!currentUserId) {
       res.status(401).json({ error: "Usuário não autenticado." });
       return;
     }
 
-    // Descobrir quem o usuário atual segue (pega a lista de IDs de quem eu sigo)
-    const followedUsers = await prisma.follow.findMany({
-      where: {
-        followerId: Number(userId),
-      },
-      select: {
-        followingId: true,
-      },
+    // Busca os registros de quem o usuário logado está seguindo
+    const follows = await prisma.follow.findMany({
+      where: { followerId: currentUserId },
+      select: { followingId: true },
     });
 
-    // Mapeia os registros para um array limpo de IDs [id1, id2, ...]
-    const followedIds = followedUsers.map((f) => f.followingId);
+    const followedIds = follows.map((f) => f.followingId);
 
-    // Buscar os posts onde o autor é o próprio usuário OU está na lista de seguidos
+    // Busca os posts dessas pessoas ordenados do mais recente para o mais antigo
     const posts = await prisma.post.findMany({
       where: {
         userId: {
-          in: followedIds, // Inclui os posts dos usuários que sigo
+          in: followedIds,
         },
       },
       orderBy: {
@@ -126,8 +121,8 @@ export const getFeed = async (
 
     res.json(posts);
   } catch (error) {
-    console.error("Erro ao buscar feed relacional:", error);
-    res.status(500).json({ error: "Erro interno ao carregar o feed." });
+    console.error("Erro ao carregar feed:", error);
+    res.status(500).json({ error: "Erro interno ao carregar feed." });
   }
 };
 

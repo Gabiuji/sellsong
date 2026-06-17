@@ -7,7 +7,7 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// 1. MODELO DE USUÁRIO (Atualizado com as relações)
+// MODELO DE USUÁRIO (Atualizado com as relações)
 model User {
   id        Int      @id @default(autoincrement())
   username  String   @unique
@@ -21,9 +21,11 @@ model User {
   following Follow[] @relation("UserFollowing")
   bio       String?  @db.Text // Biografia opcional do usuário
   avatarUrl String?  @db.Text// URL opcional para a foto de perfil do usuário
+  stories       DailyStory[] // Relação com as histórias diárias do usuário
+  topFour       TopFour[] // Relação com as 4 músicas favoritas do usuário
 }
 
-// 2. MODELO DE POSTS (Resenhas Musicais)
+// MODELO DE POSTS (Resenhas Musicais)
 model Post {
   id            Int      @id @default(autoincrement())
   spotifyTrackId String   // ID único da música que vem da API do Spotify
@@ -39,7 +41,7 @@ model Post {
   author        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// 3. MODELO DE SEGUIDORES (Tabela intermediária para a rede social)
+// MODELO DE SEGUIDORES (Tabela intermediária para a rede social)
 model Follow {
   id          Int      @id @default(autoincrement())
   createdAt   DateTime @default(now())
@@ -54,4 +56,37 @@ model Follow {
 
   // Garante que um usuário não siga a mesma pessoa duas vezes
   @@unique([followerId, followingId])
+}
+// Modelo para as Recomendações Diárias (Stories)
+model DailyStory {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  spotifyTrackId String
+  trackName      String
+  artistName     String
+  albumCover     String
+  previewUrl     String?  // Necessário para o player de micro-audição!
+  spotifyUrl     String?  // Link para a página da música no Spotify
+  caption        String   // Breve descrição (limite de 150 caracteres validado no front/back)
+  genreTag       String   // Tag do gênero musical
+  createdAt      DateTime @default(now())
+
+  author         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Modelo para as 4 Músicas Favoritas do Perfil
+model TopFour {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  position       Int      // Posição de 1 a 4 fixada
+  spotifyTrackId String
+  trackName      String
+  artistName     String
+  albumCover     String
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, position]) // Garante apenas uma música por slot do top 4
 }

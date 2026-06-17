@@ -59,6 +59,7 @@ export const searchSpotify = async (
         albumCover: item.album.images[0]?.url || "",
         durationMs: item.duration_ms,
         spotifyUrl: item.external_urls.spotify,
+        previewUrl: item.preview_url || null,
       }));
     } else if (searchType === "album" && response.data.albums) {
       data = response.data.albums.items.map((item: any) => ({

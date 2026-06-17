@@ -167,3 +167,25 @@
   background-color: var(--bg-principal);
   border-radius: 10px;
 }
+
+/* Animação da barra superior do story estilo instagram (30s de duração) */
+.animate-progress {
+  animation: storyProgress 30s linear forwards;
+}
+
+@keyframes storyProgress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hidden {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

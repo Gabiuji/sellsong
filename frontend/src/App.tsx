@@ -9,6 +9,7 @@ import DiscoveryWidget from "./components/DiscoveryWidget";
 import UserSearch from "./components/UserSearch";
 import Feed from "./views/Feed";
 import Diary from "./views/Diary";
+import StoryPanel from "./components/StoryPanel";
 
 interface User {
   id: number;
@@ -142,6 +143,9 @@ function App() {
                   <>
                     <div className="card border-0 shadow-sm rounded-4 bg-white overflow-hidden p-2">
                       <Search onPostCreated={triggerFeedRefresh} />
+                    </div>
+                    <div className="my-3">
+                      <StoryPanel />
                     </div>
                     <Feed refreshTrigger={refreshFeed} />
                   </>
