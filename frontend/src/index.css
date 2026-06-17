@@ -3,13 +3,13 @@
 @import "bootstrap-icons/font/bootstrap-icons.css";
 
 :root {
-  /* Variáveis da Paleta Midnight do SellSong */
-  --bg-principal: #0b132b; /* Deep Navy (Fundo total) */
-  --bg-container: #1c2541; /* Midnight Blue (Cards e Menus) */
-  --border-color: #3a506b; /* Starlight Blue (Bordas e Divisores) */
-  --accent-color: #4ea8de; /* Electric Neon (Destaques e Botões) */
-  --text-primary: #f4f7f6; /* Ice White (Títulos) */
-  --text-muted: #8e9aaf; /* Muted Gray (Subtextos/Bios) */
+  /* Novas Variáveis da Paleta Roxa do SellSong */
+  --bg-principal: #1a1822; /* Deep Obsidian */
+  --bg-container: #151221; /* Deep Amethyst */
+  --border-color: #2b2640; /* Muted Purple */
+  --accent-color: #a370f7; /* Neon Purple */
+  --text-primary: #f5f3f7; /* Crystal White */
+  --text-muted: #8e8a9f; /* Lavender Gray */
 }
 
 /* Forçando html e body a assumirem o Deep Navy com prioridade máxima */
@@ -25,17 +25,73 @@ body {
   transition: background-color 0.3s ease;
 }
 
-/* Animação suave de flutuação para o Vinil da Landing Page */
-@keyframes float {
+/* Combina flutuação sutil com rotação infinita de vinil */
+@keyframes vinyl-turn-and-float {
   0% {
     transform: translateY(0px) rotate(0deg);
   }
   50% {
-    transform: translateY(-15px) rotate(10deg);
+    transform: translateY(-10px) rotate(180deg);
   }
   100% {
-    transform: translateY(0px) rotate(0deg);
+    transform: translateY(0px) rotate(360deg);
   }
+}
+
+.animate-vinyl {
+  animation: vinyl-turn-and-float 12s linear infinite;
+  display: inline-block;
+}
+
+/* Estilização realista do Disco de Vinil em CSS puro */
+.vinyl-disc {
+  background:
+    radial-gradient(
+      circle,
+      #ffffff 4%,
+      var(--accent-color) 5%,
+      var(--accent-color) 14%,
+      #09070f 15%,
+      #09070f 16%,
+      transparent 17%
+    ),
+    radial-gradient(
+      circle,
+      transparent 35%,
+      rgba(163, 112, 247, 0.15) 36%,
+      transparent 38%
+    ),
+    radial-gradient(
+      circle,
+      transparent 55%,
+      rgba(163, 112, 247, 0.1) 56%,
+      transparent 58%
+    ),
+    radial-gradient(
+      circle,
+      transparent 70%,
+      rgba(43, 38, 64, 0.3) 71%,
+      transparent 73%
+    ),
+    conic-gradient(
+      from 0deg,
+      var(--bg-container) 0%,
+      #201a35 15%,
+      var(--bg-container) 30%,
+      #201a35 45%,
+      var(--bg-container) 60%,
+      #201a35 75%,
+      var(--bg-container) 90%,
+      #201a35 105%,
+      var(--bg-container) 120%
+    );
+
+  border-radius: 50%;
+  padding: 10px;
+  box-shadow:
+    0 15px 40px rgba(0, 0, 0, 0.6),
+    inset 0 0 30px rgba(9, 7, 15, 0.8);
+  border: 4px solid var(--border-color);
 }
 
 .animate-float {

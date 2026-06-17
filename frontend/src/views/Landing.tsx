@@ -56,15 +56,22 @@ export default function Landing({ onEnter }: LandingProps) {
             </div>
             <div className="col-lg-6 text-center">
               <div className="position-relative d-inline-block">
-                {/* Ícone Gigante flutuando com Bootstrap */}
-                <div
-                  className="text-primary animate-float"
-                  style={{ fontSize: "12rem" }}
-                >
-                  <i className="bi bi-vinyl-fill"></i>
-                </div>
-                <div className="position-absolute top-0 start-100 translate-middle text-success fs-1">
-                  <i className="bi bi-stars"></i>
+                {/* CONTAINER DO VINIL REALISTA E GIRATÓRIO */}
+                <div className="animate-vinyl p-2">
+                  <div
+                    className="vinyl-disc d-flex align-items-center justify-content-center"
+                    style={{ width: "16rem", height: "16rem" }}
+                  >
+                    {/* Ícone agora atua apenas como textura sutil por cima do gradiente */}
+                    <i
+                      className="bi bi-vinyl"
+                      style={{
+                        fontSize: "15rem",
+                        color: "var(--border-color)",
+                        opacity: 0.15,
+                      }}
+                    ></i>
+                  </div>
                 </div>
               </div>
             </div>

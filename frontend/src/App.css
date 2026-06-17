@@ -11,9 +11,9 @@
 .bg-light,
 .bg-light-subtle {
   background-color: rgba(
-    58,
-    80,
-    107,
+    76,
+    53,
+    94,
     0.25
   ) !important; /* Starlight Blue com opacidade */
   color: var(--text-primary) !important;
@@ -56,8 +56,8 @@
 }
 
 .btn-primary:hover {
-  background-color: #56cfe1 !important;
-  border-color: #56cfe1 !important;
+  background-color: #b892ff !important;
+  border-color: #b892ff !important;
 }
 
 .btn-outline-secondary {
@@ -89,7 +89,7 @@
 /* Customização da Logo em Gradiente Neon */
 .navbar-brand,
 .brand-logo {
-  background: linear-gradient(45deg, var(--accent-color), #56cfe1);
+  background: linear-gradient(45deg, var(--accent-color), #b892ff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   font-weight: 800;

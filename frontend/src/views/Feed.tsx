@@ -119,7 +119,7 @@ export default function Feed({ refreshTrigger }: FeedProps) {
                   {post.artistName}
                 </span>
                 {post.review && (
-                  <p className="text-dark x-small m-0 text-truncate-2 bg-white p-1.5 rounded border-start border-primary border-2 mt-1">
+                  <p className="text-dark x-small m-0 text-truncate-2 p-1.5 rounded border-start border-primary border-2 mt-1">
                     {post.review}
                   </p>
                 )}
