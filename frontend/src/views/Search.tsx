@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import RatingModal from "../components/RatingModal"; // 🌟 Importação do novo Modal
+import RatingModal from "../components/RatingModal";
 
 // Definição das interfaces para manter o TypeScript feliz
 interface SearchResult {
@@ -43,7 +43,7 @@ export default function Search({ onPostCreated }: SearchProps) {
     name: string;
     artists: { name: string }[];
     album: { images: { url: string }[] };
-  } | null>(null); // 🌟 Removido o 'any' daqui também!
+  } | null>(null);
 
   // Função adaptadora para transformar o nosso SearchResult no padrão que o RatingModal espera
   const openModal = (item: SearchResult) => {

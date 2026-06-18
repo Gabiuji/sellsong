@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import TopFourPanel from "../components/TopFourPanel";
 
 interface ConnectionUser {
   id: number;
@@ -26,6 +27,9 @@ export default function Settings() {
   const formattedToken = token?.startsWith("Bearer ")
     ? token
     : `Bearer ${token}`;
+
+  const userStorage = localStorage.getItem("@SellSong:user");
+  const currentUserId = userStorage ? JSON.parse(userStorage).id : null;
 
   // Carrega os dados do perfil ao montar o componente
   useEffect(() => {
@@ -169,7 +173,7 @@ export default function Settings() {
                 `https://api.dicebear.com/7.x/bottts/svg?seed=${username || "default"}`
               }
               alt="Preview"
-              className="rounded-circle border border-3 bg-white shadow-sm p-1 mb-2"
+              className="rounded-circle border-3 bg-white shadow-sm p-1 mb-2"
               style={{ width: "90px", height: "90px", objectFit: "cover" }}
             />
             <span className="d-block text-muted x-small">@{username}</span>
@@ -208,6 +212,13 @@ export default function Settings() {
               {bio?.length || 0}/160 caracteres
             </div>
           </div>
+
+          {/* Painel de Edição do Top 4 injetado dinamicamente para o usuário logado */}
+          {currentUserId && (
+            <div className="border-top pt-2 mt-2">
+              <TopFourPanel userId={currentUserId} />
+            </div>
+          )}
 
           <div className="text-end mt-2">
             <button

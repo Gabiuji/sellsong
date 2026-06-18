@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { AuthenticatedRequest } from "../middlewares/authMiddleware.js";
 
@@ -278,5 +278,52 @@ export const getUserConnections = async (
   } catch (error) {
     console.error("Erro ao buscar conexões do usuário:", error);
     res.status(500).json({ error: "Erro interno ao carregar conexões." });
+  }
+};
+
+// ==========================================
+// BUSCAR DADOS DE UM PERFIL PÚBLICO
+// ==========================================
+export const getPublicProfile = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const user = await prisma.user.findUnique({
+      where: { id: Number(id) },
+      select: {
+        id: true,
+        username: true,
+        avatarUrl: true,
+        bio: true, // Garanta que a coluna 'bio' exista no seu modelo User
+        // Conta os relacionamentos diretamente no banco de dados para poupar memória
+        _count: {
+          select: {
+            followers: true, // Nome da relação inversa de seguidores no seu Schema
+            following: true, // Nome da relação inversa de seguindo no seu Schema
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: "Usuário não encontrado." });
+      return;
+    }
+
+    // Formata o retorno para o frontend consumir de forma amigável
+    res.json({
+      id: user.id,
+      username: user.username,
+      avatarUrl: user.avatarUrl,
+      bio: user.bio || "Sem biografia ainda.",
+      followersCount: user._count.followers,
+      followingCount: user._count.following,
+    });
+  } catch (error) {
+    console.error("Erro ao buscar perfil público:", error);
+    res.status(500).json({ error: "Erro interno ao carregar perfil." });
   }
 };

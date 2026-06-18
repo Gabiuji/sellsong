@@ -8,6 +8,7 @@ import postRoutes from "./routes/postRouter.js";
 import followRoutes from "./routes/followRouter.js";
 import userRoutes from "./routes/userRouter.js";
 import storyRoutes from "./routes/storyRouter.js";
+import topFourRoutes from "./routes/topFourRouter.js";
 
 const app = express();
 const prisma = new PrismaClient();
@@ -25,6 +26,7 @@ app.use("/api/posts", postRoutes); // Conecta o roteador prefixando com /api/pos
 app.use("/api/follow", followRoutes); // Conecta o roteador prefixando com /api/follow
 app.use("/api/users", userRoutes); // Conecta o roteador prefixando com /api/users
 app.use("/api/stories", storyRoutes); // Conecta o roteador prefixando com /api/stories
+app.use("/api/top-four", topFourRoutes); // Conecta o roteador prefixando com /api/top-four
 
 // Rota de Teste (Healthcheck)
 app.get("/api/health", async (req, res) => {

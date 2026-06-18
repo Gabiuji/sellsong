@@ -4,6 +4,27 @@ Este arquivo registra a evolução técnica, correções de arquitetura e funcio
 
 ---
 
+## [18/06/2026] - Músicas favoritas (top 4) e perfil público
+
+A mecânica de destaques inspirada no Letterboxd foi completamente acoplada ao ecossistema do SellSong, permitindo personalização de perfil e portabilidade de dados para visualização entre usuários.
+
+### 1. Backend (Prisma, MySQL & Controladores)
+
+- **Persistência Sólida:** Lógica baseada em `Prisma` utilizando `@@unique([userId, position])` para garantir que cada usuário tenha apenas uma música por slot (1 a 4).
+- **Upsert Inteligente:** Criação do endpoint `PUT /api/top-four` utilizando a operação `upsert` do Prisma, que atualiza ou cria o registro de forma atômica no banco de dados.
+- **Dados Consolidados:** Desenvolvimento do endpoint `GET /api/users/public/:id` para entregar dados agregados de perfis de terceiros, computando totais de seguidores e seguindo direto via query de agregação (`_count`).
+
+### 2. Frontend (React, TypeScript & Design System)
+
+- **Componente Reutilizável (`TopFourPanel`):** * Criado um grid dinâmico que detecta a propriedade `userId` para discernir se o visualizador é o dono do perfil (ativando o modo edição) ou um visitante (ativando o modo *read-only\*).
+  - Correção na URL do Axios injetando os parâmetros via Query String com `encodeURIComponent` para sanar a listagem vazia na busca do Spotify.
+- **Tratamento de Contraste e Interface:** \* Aplicação de uma película com gradiente linear escuro (`linear-gradient`) sobre a arte do álbum, elevando a opacidade da capa e garantindo 100% de legibilidade para fontes brancas sobre imagens claras (como capas amarelas/brancas).
+- **Integração por Modais Dinâmicos:**
+  - O painel foi acoplado à aba de **Editar Perfil** em `Settings.tsx` para gerenciamento pessoal.
+  - Desenvolvimento do `<UserProfileModal />`, acoplado estrategicamente à área de clique do `<UserSearch />`, permitindo espiar o perfil detalhado de amigos sem perder o estado ou histórico da pesquisa atual.
+
+---
+
 ## [17/06/2026] - Stories de recomendações musicais
 
 A funcionalidade de recomendações diárias estilo Stories foi totalmente implementada, integrada ao ecossistema do Spotify e blindada contra falhas de restrição de catálogo através de um fallback de redirecionamento.

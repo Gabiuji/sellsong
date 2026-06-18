@@ -5,6 +5,7 @@ import {
   searchUsers,
   toggleFollowUser,
   getUserConnections,
+  getPublicProfile,
 } from "../controllers/userController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 
@@ -16,5 +17,6 @@ router.put("/profile", authMiddleware, updateUserProfile);
 router.get("/search", authMiddleware, searchUsers);
 router.post("/:id/follow", authMiddleware, toggleFollowUser);
 router.get("/connections", authMiddleware, getUserConnections);
+router.get("/public/:id", getPublicProfile);
 
 export default router;

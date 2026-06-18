@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import UserProfileModal from "./UserProfileModal";
 
 interface SystemUser {
   id: number;
@@ -14,6 +15,9 @@ export default function UserSearch() {
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState<SystemUser[]>([]);
   const [loading, setLoading] = useState(false);
+
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const token = localStorage.getItem("@SellSong:token");
   const formattedToken = token?.startsWith("Bearer ")
@@ -106,7 +110,16 @@ export default function UserSearch() {
               key={item.id}
               className="d-flex align-items-center justify-content-between p-3 bg-light rounded-4 border"
             >
-              <div className="d-flex align-items-center gap-3 text-truncate me-2">
+              {/* Clicar nesta área abre o modal detalhado do usuário */}
+              <div
+                className="d-flex align-items-center gap-3 text-truncate me-2"
+                onClick={() => {
+                  setSelectedUserId(item.id);
+                  setIsProfileOpen(true);
+                }}
+                style={{ cursor: "pointer" }}
+                title={`Ver perfil de @${item.username}`}
+              >
                 <img
                   src={
                     item.avatarUrl ||
@@ -117,7 +130,7 @@ export default function UserSearch() {
                   style={{ width: "48px", height: "48px", objectFit: "cover" }}
                 />
                 <div className="text-truncate">
-                  <span className="fw-bold text-dark d-block small">
+                  <span className="fw-bold text-dark d-block small hover-text-purple">
                     @{item.username}
                   </span>
                   <span
@@ -134,10 +147,10 @@ export default function UserSearch() {
                 <button
                   className={`btn btn-xs rounded-pill px-3 fw-bold shadow-xs ${
                     item.isFriend
-                      ? "btn-success" // Exibe verde com aperto de mão se forem amigos mútuos
+                      ? "btn-success"
                       : item.isFollowing
-                        ? "btn-secondary" // Exibe cinza caso você já o siga
-                        : "btn-outline-primary" // Exibe azul vazado se for alguém novo
+                        ? "btn-secondary"
+                        : "btn-outline-primary"
                   }`}
                   onClick={() => handleFollowToggle(item.id)}
                 >
@@ -154,6 +167,18 @@ export default function UserSearch() {
           ))
         )}
       </div>
+
+      {/* O Modal de Perfil plugado diretamente no rodapé do JSX */}
+      {selectedUserId && (
+        <UserProfileModal
+          isOpen={isProfileOpen}
+          onClose={() => {
+            setIsProfileOpen(false);
+            setSelectedUserId(null);
+          }}
+          userId={selectedUserId}
+        />
+      )}
     </div>
   );
 }

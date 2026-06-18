@@ -75,7 +75,7 @@ export default function Feed({ refreshTrigger }: FeedProps) {
         posts.map((post) => (
           <div
             key={post.id}
-            className="card border shadow-sm rounded-4 p-3 bg-white border"
+            className="card border shadow-sm rounded-4 p-3 bg-white"
           >
             {/* Cabeçalho do Post (Autor) */}
             <div className="d-flex align-items-center gap-2 mb-3">
