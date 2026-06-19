@@ -134,7 +134,7 @@ function App() {
             <div className="row g-4">
               {/* COLUNA ESQUERDA: Perfil e Atalhos */}
               <aside className="col-12 col-lg-3">
-                <ProfileWidget />
+                <ProfileWidget setActiveTab={setActiveTab} />
               </aside>
 
               {/* COLUNA CENTRAL: Onde ocorre a alternância das telas */}

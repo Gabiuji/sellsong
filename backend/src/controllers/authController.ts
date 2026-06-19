@@ -2,9 +2,19 @@ import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import {
+  validatePasswordStrength,
+  validateEmail,
+  validateUsername,
+} from "../utils/validators.js";
 
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key";
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_EXPIRY = process.env.JWT_EXPIRY || "24h";
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET não está configurado");
+}
 
 // ==========================================
 // REGISTRO / CADASTRO DE USUÁRIO
@@ -13,9 +23,40 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   try {
     const { username, email, password } = req.body;
 
-    // Validação simples de campos obrigatórios
+    // ==========================================
+    // VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS
+    // ==========================================
     if (!username || !email || !password) {
       res.status(400).json({ error: "Todos os campos são obrigatórios." });
+      return;
+    }
+
+    // ==========================================
+    // VALIDAÇÃO DE EMAIL
+    // ==========================================
+    if (!validateEmail(email)) {
+      res.status(400).json({ error: "E-mail inválido." });
+      return;
+    }
+
+    // ==========================================
+    // VALIDAÇÃO DE USERNAME
+    // ==========================================
+    const usernameValidation = validateUsername(username);
+    if (!usernameValidation.isValid) {
+      res.status(400).json({ error: usernameValidation.error });
+      return;
+    }
+
+    // ==========================================
+    // VALIDAÇÃO DE FORÇA DE SENHA
+    // ==========================================
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.isValid) {
+      res.status(400).json({
+        error: "Senha fraca",
+        details: passwordValidation.errors,
+      });
       return;
     }
 
@@ -91,11 +132,11 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Se a senha for válida, gera o Token JWT (expira em 7 dias)
+    // Se a senha for válida, gera o Token JWT (expira em 24 horas)
     const token = jwt.sign(
       { userId: user.id, username: user.username },
       JWT_SECRET,
-      { expiresIn: "7d" },
+      { expiresIn: JWT_EXPIRY },
     );
 
     // Retorna o token e os dados públicos do usuário

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import UserProfileModal from "../components/UserProfileModal";
 
 interface Post {
   id: number;
@@ -9,10 +10,17 @@ interface Post {
   rating: number;
   review?: string;
   createdAt: string;
+  userId: number;
   author: {
     username: string;
     avatarUrl?: string;
   };
+}
+
+interface FollowingUser {
+  id: number;
+  username: string;
+  avatarUrl: string;
 }
 
 interface FeedProps {
@@ -21,30 +29,59 @@ interface FeedProps {
 
 export default function Feed({ refreshTrigger }: FeedProps) {
   const [posts, setPosts] = useState<Post[]>([]);
+  const [following, setFollowing] = useState<FollowingUser[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchFeed = async () => {
-      const token = localStorage.getItem("@SellSong:token");
-      if (!token) return;
+  // Filtros para o feed (todas as reviews ou apenas de um usuário específico)
+  const [selectedFilter, setSelectedFilter] = useState<"all" | number>("all");
+  const [filterLabel, setFilterLabel] = useState("Todas as reviews");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  // Estado para controle do modal de perfil público
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  const token = localStorage.getItem("@SellSong:token");
+  const formattedToken = token?.startsWith("Bearer ")
+    ? token
+    : `Bearer ${token}`;
+
+  useEffect(() => {
+    const fetchFeedData = async () => {
+      if (!token) return;
       try {
-        const formattedToken = token.startsWith("Bearer ")
-          ? token
-          : `Bearer ${token}`;
-        const response = await axios.get("http://localhost:3000/api/posts", {
-          headers: { Authorization: formattedToken },
-        });
-        setPosts(response.data);
+        // 1. Busca os posts da timeline
+        const postsResponse = await axios.get(
+          "http://localhost:3000/api/posts",
+          {
+            headers: { Authorization: formattedToken },
+          },
+        );
+
+        // Organiza estritamente por data decrescente (mais recentes primeiro)
+        const sortedPosts = postsResponse.data.sort(
+          (a: Post, b: Post) =>
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        );
+        setPosts(sortedPosts);
+
+        // 2. Busca as conexões para preencher as opções do filtro
+        const connectionsResponse = await axios.get(
+          "http://localhost:3000/api/users/connections",
+          {
+            headers: { Authorization: formattedToken },
+          },
+        );
+        setFollowing(connectionsResponse.data.following || []);
       } catch (error) {
-        console.error("Erro ao carregar o feed:", error);
+        console.error("Erro ao carregar os dados do feed:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFeed();
-  }, [refreshTrigger]);
+    fetchFeedData();
+  }, [refreshTrigger, formattedToken]);
 
   if (loading) {
     return (
@@ -54,25 +91,91 @@ export default function Feed({ refreshTrigger }: FeedProps) {
     );
   }
 
+  // Aplica o filtro selecionado e limita a exibição para as últimas 12 reviews
+  const filteredPosts = posts
+    .filter(
+      (post) => selectedFilter === "all" || post.userId === selectedFilter,
+    )
+    .slice(0, 12); // Corta para exibir no máximo as últimas 12
+
   return (
     <div className="d-flex flex-column gap-3 mt-4">
-      <div className="d-flex align-items-center mb-1">
-        <h5 className="fw-bold text-dark m-0">Feed da sua Rede</h5>
-        <span className="badge bg-primary rounded-pill ms-2 small">
-          Novidades
-        </span>
+      {/* SEÇÃO DE CABEÇALHO COM FILTRO DROPDOWN */}
+      <div className="d-flex align-items-center justify-content-between mb-1">
+        <div className="d-flex align-items-center">
+          <h5 className="fw-bold text-dark m-0">Feed da sua Rede</h5>
+          <span className="badge bg-primary rounded-pill ms-2 small">
+            Novidades
+          </span>
+        </div>
+
+        {/* DROPDOWN DE FILTRAGEM */}
+        <div className="position-relative">
+          <button
+            className="btn btn-sm btn-outline-secondary dropdown-toggle rounded-pill px-3 fw-semibold small d-flex align-items-center gap-1 shadow-none"
+            type="button"
+            onClick={() => setDropdownOpen(!dropdownOpen)} // Abre e fecha no clique
+          >
+            <i className="bi bi-filter-circle"></i> {filterLabel}
+          </button>
+
+          {/* Menu flutuante renderizado nativamente pelo React usando classes utilitárias do Bootstrap */}
+          {dropdownOpen && (
+            <ul
+              className="dropdown-menu dropdown-menu-end shadow border-0 p-1 rounded-3 small d-block"
+              style={{
+                position: "absolute",
+                right: 0,
+                top: "110%",
+                zIndex: 1000,
+                minWidth: "160px",
+              }}
+            >
+              <li>
+                <button
+                  className={`dropdown-item rounded-2 py-1.5 fw-medium ${selectedFilter === "all" ? "active bg-primary text-white" : ""}`}
+                  onClick={() => {
+                    setSelectedFilter("all");
+                    setFilterLabel("Todas as reviews");
+                    setDropdownOpen(false); // Fecha o menu ao selecionar
+                  }}
+                >
+                  Todas as reviews
+                </button>
+              </li>
+              {following.length > 0 && (
+                <div className="dropdown-divider my-1"></div>
+              )}
+              {following.map((user) => (
+                <li key={user.id}>
+                  <button
+                    className={`dropdown-item rounded-2 py-1.5 text-truncate ${selectedFilter === user.id ? "active bg-primary text-white" : ""}`}
+                    style={{ maxWidth: "200px" }}
+                    onClick={() => {
+                      setSelectedFilter(user.id);
+                      setFilterLabel(`@${user.username}`);
+                      setDropdownOpen(false); // Fecha o menu ao selecionar
+                    }}
+                  >
+                    @{user.username}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
-      {posts.length === 0 ? (
+      {/* RENDERIZAÇÃO DAS AVALIAÇÕES */}
+      {filteredPosts.length === 0 ? (
         <div className="card border-0 shadow-sm rounded-4 p-4 text-center text-secondary bg-white">
           <i className="bi bi-chat-square-heart fs-2 text-muted mb-2"></i>
           <p className="m-0 small">
-            As avaliações dos seus amigos e as suas aparecerão aqui em tempo
-            real! Siga mais pessoas para povoar seu feed.
+            Nenhuma avaliação encontrada para o filtro selecionado.
           </p>
         </div>
       ) : (
-        posts.map((post) => (
+        filteredPosts.map((post) => (
           <div
             key={post.id}
             className="card border shadow-sm rounded-4 p-3 bg-white"
@@ -86,10 +189,26 @@ export default function Feed({ refreshTrigger }: FeedProps) {
                 }
                 alt={post.author.username}
                 className="rounded-circle border"
-                style={{ width: "36px", height: "36px", objectFit: "cover" }}
+                onClick={() => {
+                  setSelectedUserId(post.userId);
+                  setIsProfileOpen(true);
+                }}
+                style={{
+                  width: "36px",
+                  height: "36px",
+                  objectFit: "cover",
+                  cursor: "pointer",
+                }}
+                title={`Ver perfil de @${post.author.username}`}
               />
-              <div>
-                <span className="fw-bold text-dark d-block small">
+              <div
+                onClick={() => {
+                  setSelectedUserId(post.userId);
+                  setIsProfileOpen(true);
+                }}
+                style={{ cursor: "pointer" }}
+              >
+                <span className="fw-bold text-dark d-block small hover-text-purple">
                   @{post.author.username}
                 </span>
                 <span className="text-muted xx-small">
@@ -127,6 +246,18 @@ export default function Feed({ refreshTrigger }: FeedProps) {
             </div>
           </div>
         ))
+      )}
+
+      {/* O modal foi movido para fora do loop map para rodar de forma leve */}
+      {selectedUserId && (
+        <UserProfileModal
+          isOpen={isProfileOpen}
+          onClose={() => {
+            setIsProfileOpen(false);
+            setSelectedUserId(null);
+          }}
+          userId={selectedUserId}
+        />
       )}
     </div>
   );

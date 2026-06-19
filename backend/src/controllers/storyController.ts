@@ -1,8 +1,31 @@
 import { Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { AuthenticatedRequest } from "../middlewares/authMiddleware.js";
+import { validateCaption, sanitizeString } from "../utils/validators.js";
 
 const prisma = new PrismaClient();
+
+// Lista whitelist de gêneros permitidos (segurança contra XSS)
+const ALLOWED_GENRES = [
+  "pop",
+  "rock",
+  "hip-hop",
+  "r&b",
+  "jazz",
+  "classical",
+  "electronic",
+  "country",
+  "reggae",
+  "blues",
+  "indie",
+  "metal",
+  "folk",
+  "soul",
+  "funk",
+  "latin",
+  "alternative",
+  "outros",
+];
 
 // ==========================================
 // CRIAR / ATUALIZAR STORY DO DIA
@@ -29,9 +52,31 @@ export const createStory = async (
       return;
     }
 
-    if (!caption || caption.length > 150) {
+    // ==========================================
+    // VALIDAÇÃO DE CAPTION
+    // ==========================================
+    const captionValidation = validateCaption(caption);
+    if (!captionValidation.isValid) {
+      res.status(400).json({ error: captionValidation.error });
+      return;
+    }
+
+    // ==========================================
+    // VALIDAÇÃO DE GÊNERO (contra XSS)
+    // ==========================================
+    if (genreTag && !ALLOWED_GENRES.includes(genreTag.toLowerCase())) {
       res.status(400).json({
-        error: "A descrição é obrigatória e deve ter no máximo 150 caracteres.",
+        error: `Gênero inválido. Gêneros permitidos: ${ALLOWED_GENRES.join(", ")}`,
+      });
+      return;
+    }
+
+    // ==========================================
+    // VALIDAÇÃO DE CAMPOS OBRIGATÓRIOS
+    // ==========================================
+    if (!spotifyTrackId || !trackName || !artistName) {
+      res.status(400).json({
+        error: "spotifyTrackId, trackName e artistName são obrigatórios.",
       });
       return;
     }
@@ -54,17 +99,18 @@ export const createStory = async (
     });
 
     // Cria o novo story (que passará a ser o único do dia)
+    // Sanitiza dados sensíveis para evitar XSS
     const story = await prisma.dailyStory.create({
       data: {
         userId: currentUserId,
-        spotifyTrackId,
-        trackName,
-        artistName,
-        albumCover,
-        previewUrl,
-        spotifyUrl,
-        caption,
-        genreTag,
+        spotifyTrackId: sanitizeString(spotifyTrackId),
+        trackName: sanitizeString(trackName),
+        artistName: sanitizeString(artistName),
+        albumCover: sanitizeString(albumCover || ""),
+        previewUrl: sanitizeString(previewUrl || ""),
+        spotifyUrl: sanitizeString(spotifyUrl || ""),
+        caption: sanitizeString(caption),
+        genreTag: genreTag ? sanitizeString(genreTag.toLowerCase()) : null,
       },
     });
 

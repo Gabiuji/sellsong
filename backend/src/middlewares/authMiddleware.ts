@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret_key";
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET não está configurado no .env");
+}
 
 // Interface para estender o comportamento do Request do Express
 // e permitir que injetemos os dados do usuário autenticado nele

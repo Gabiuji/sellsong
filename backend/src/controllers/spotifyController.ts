@@ -116,21 +116,43 @@ export const getArtistAlbums = async (
       `https://api.spotify.com/v1/artists/${id}/albums`,
       {
         headers: { Authorization: `Bearer ${token}` },
-        params: { include_groups: "album,single", limit: 12 },
+        params: { include_groups: "album,single" },
       },
     );
+
+    // Garante que se a API falhar no formato, o código não quebra com 500
+    if (!response.data || !response.data.items) {
+      console.warn(
+        "--> RETORNO INESPERADO DO SPOTIFY (SEM ITEMS):",
+        response.data,
+      );
+      res.json([]); // Retorna uma lista vazia de forma segura para o front não explodir
+      return;
+    }
 
     const albums = response.data.items.map((item: any) => ({
       id: item.id,
       type: "album",
       name: item.name,
-      albumCover: item.images[0]?.url || "",
+      albumCover: item.images?.[0]?.url || "https://via.placeholder.com/150",
       releaseDate: item.release_date,
     }));
 
     res.json(albums);
-  } catch (error) {
-    console.error("Erro ao buscar álbuns do artista:", error);
+  } catch (error: any) {
+    // Mostra no console do terminal o motivo real do erro do Spotify
+    if (error.response) {
+      console.error(
+        "--> ERRO DETALHADO DO SPOTIFY NOS ÁLBUNS:",
+        error.response.status,
+        error.response.data,
+      );
+    } else {
+      console.error(
+        "--> ERRO AO CONECTAR NO SPOTIFY NOS ÁLBUNS:",
+        error.message,
+      );
+    }
     res.status(500).json({ error: "Erro ao buscar álbuns do artista." });
   }
 };

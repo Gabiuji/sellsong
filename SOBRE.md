@@ -10,7 +10,7 @@ A proposta central do aplicativo é permitir que os usuários façam **recomenda
 
 - **Feed Estilo "Stories" (Recomendações Diárias):** Um feed dinâmico onde os usuários compartilham uma única música por dia com uma breve descrição (limite de 150 caracteres) e a tag do gênero musical.
 - **Integração Musical:** Integração com APIs de streaming para busca de faixas oficiais (título, artista, álbum e capa).
-- **Player de Micro-audição:** Reprodução automática ou sob comando de um trecho de 15 a 30 segundos da faixa recomendada assim que o card da música entra em foco no feed.
+- **Player de Micro-audição:** Infelizmente a API do Spotify não permite usar áudio das músicas.
 - **Rede de Amigos Mútuos:** O feed principal exibe conteúdos focados nas atualizações de pessoas que se seguem mutuamente (Amigos).
 - **Os 4 Favoritos (Top 4):** Assim como os filmes favoritos no Letterboxd, cada usuário pode fixar 4 músicas especiais em destaque no topo do seu perfil.
 - **Top Recomendações Semanais:** Um painel global que exibe quais músicas estão sendo mais recomendadas na plataforma nos últimos 7 dias.

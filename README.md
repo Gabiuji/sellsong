@@ -4,6 +4,57 @@ Este arquivo registra a evolução técnica, correções de arquitetura e funcio
 
 ---
 
+## [19/06/2026] - Funcionalidade: Filtros de Timeline, Ajustes Estruturais , Correções Spotify e Melhorias de Segurança
+
+Refinamento completo da usabilidade da timeline (Feed), integração síncrona com interações de perfis públicos diretamente através de avatares/nomes e correção estrutural e lógica em rotas do catálogo do Spotify.
+
+## Modificações Realizadas
+
+### 1. Frontend & UX (Feed & ProfileWidget)
+
+- **Filtro Seletivo Controlado:** Implementação de um dropdown reativo controlado nativamente por estados do React (`dropdownOpen`), eliminando a dependência de scripts externos do Bootstrap. Agora é possível filtrar a timeline para ver "Todas as reviews" ou selecionar um amigo específico.
+- **Limite e Ordenação Estrita:** Fixado o teto de exibição do feed em no máximo **12 reviews** simultâneas, devidamente ordenadas por data decrescente (mais recentes primeiro).
+- **Métricas Ativas no Painel:** O componente `ProfileWidget` agora é totalmente clicável:
+  - O clique em **Reviews** alterna para a aba do Diário (`diary`).
+  - Cliques em **Seguidores** ou **Seguindo** disparam modais escuros compactos exibindo as respectivas conexões.
+  - **Carrossel de Abas (Paginação):** Implementada paginação em lote automática limitando a exibição a 10 usuários por vez, gerando abas dinâmicas (`Pág. 1`, `Pág. 2`) caso a lista de conexões exceda o limite.
+- **Otimização de Renderização:** Realocação do `<UserProfileModal />` para fora dos loops de renderização do `map` no feed, saneando instâncias paralelas duplicadas e melhorando a performance geral do DOM.
+
+### 2. Backend (Correções no SpotifyController)
+
+- **Interpolação de Strings Fixada:** Correção de sintaxe em _Template Literals_ na função `getArtistAlbums` onde o caractere `$` estava ausente na passagem do ID da rota (`{id}` para `${id}`).
+- **Sanamento de Payload Incompatível:** Remoção do parâmetro `limit: 12` na requisição de álbuns de artistas que estava disparando erro de validação severo (`Status 400 - Invalid limit`) pelo servidor proxy local.
+- **Mapeamento Defensivo:** Injeção de cláusula de guarda e encadeamento opcional (`?.`) na captura de arrays de imagens de álbuns, evitando falhas catastróficas de ponteiro nulo (Erro 500).
+
+### 3. **Gerenciamento de Variáveis de Ambiente**
+
+- ✅ Criado `.env.example` com template de variáveis
+- ✅ Atualizado `backend/.env` com variáveis seguras
+- ✅ Adicionado ao `.gitignore` para evitar vazar credenciais
+- ✅ Validação obrigatória de `JWT_SECRET` na inicialização
+
+**Arquivos modificados:**
+
+- `.env.example` - Template para desenvolvedores
+- `backend/.env` - Arquivo local com valores
+- `backend/src/index.ts` - Validação de JWT_SECRET
+
+---
+
+### 4. **Segurança HTTP - Helmet**
+
+- ✅ Adicionado `helmet` para headers de segurança
+- ✅ Protege contra: XSS, Clickjacking, MIME-type sniffing, etc.
+
+---
+
+### 5. **Rate Limiting**
+
+- ✅ Adicionado `express-rate-limit` para proteção contra brute force
+- ✅ Limite padrão: 100 requisições por 15 minutos
+- ✅ Skip no health check
+- ✅ Configurável via `.env`
+
 ## [18/06/2026] - Músicas favoritas (top 4) e perfil público
 
 A mecânica de destaques inspirada no Letterboxd foi completamente acoplada ao ecossistema do SellSong, permitindo personalização de perfil e portabilidade de dados para visualização entre usuários.
