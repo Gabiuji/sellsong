@@ -23,14 +23,19 @@ export default function RatingModal({
   const [review, setReview] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [successMessage, setSuccessMessage] = useState<string>("");
+
   if (!track) return null;
 
   const artistName = track.artists.map((a) => a.name).join(", ");
   const albumCover = track.album.images[0]?.url || "";
 
+  // Função para enviar a avaliação para o backend
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage("");
 
     const token = localStorage.getItem("@SellSong:token");
     const formattedToken = token?.startsWith("Bearer ")
@@ -43,21 +48,29 @@ export default function RatingModal({
         {
           spotifyTrackId: track.id,
           trackName: track.name,
-          artistName,
-          albumCover,
-          rating,
-          review,
+          artistName: track.artists[0]?.name,
+          albumCover: track.album?.images[0]?.url,
+          rating: rating,
+          review: review, // texto inserido pelo usuário
         },
-        { headers: { Authorization: formattedToken } },
+        {
+          headers: { Authorization: formattedToken },
+        },
       );
 
-      onPostCreated(); // Avisa o feed para se atualizar
+      // Fluxo de sucesso existente (ex: fechar modal, atualizar feed, alertar sucesso)
+      setSuccessMessage("Avaliação compartilhada com sucesso!");
+      onPostCreated(); // Atualiza a timeline
       onClose(); // Fecha o modal
     } catch (error) {
-      console.error("Erro ao compartilhar review:", error);
-      alert("Erro ao publicar sua avaliação.");
-    } finally {
-      setLoading(false);
+      console.error("Erro ao enviar avaliação:", error);
+      // Se o backend retornar erro 400 (como a nossa nova trava de duplicidade),
+      // pegamos a mensagem exata configurada no controller.
+      const errorMessage =
+        (error as { response?: { data?: { error?: string } } }).response?.data
+          ?.error || "Erro interno ao criar publicação.";
+
+      setErrorMessage(errorMessage);
     }
   };
 
@@ -139,6 +152,18 @@ export default function RatingModal({
                 onChange={(e) => setReview(e.target.value)}
               />
             </div>
+            {successMessage && (
+              <div className="alert alert-success d-flex align-items-center gap-2 py-2 px-3 rounded-3 small border-0 my-2 animate__animated animate__fadeIn">
+                <i className="bi bi-check-circle-fill shrink-0"></i>
+                <div className="fw-medium text-start">{successMessage}</div>
+              </div>
+            )}
+            {errorMessage && (
+              <div className="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 rounded-3 small border-0 my-2 animate__animated animate__fadeIn">
+                <i className="bi bi-exclamation-triangle-fill shrink-0"></i>
+                <div className="fw-medium text-start">{errorMessage}</div>
+              </div>
+            )}
 
             {/* Botões */}
             <div className="d-flex justify-content-end gap-2 pt-2 border-top">

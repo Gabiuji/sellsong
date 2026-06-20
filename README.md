@@ -4,6 +4,25 @@ Este arquivo registra a evolução técnica, correções de arquitetura e funcio
 
 ---
 
+## [20/06/2026] - Integridade do Banco & Refatoração de Componentes
+
+Sessão focada em usabilidade avançada, correção de quebras de API externa, segurança de integridade de dados e redesign de componentes do funil de interações do SellSong.
+
+### 1. Backend & Banco de Dados (Trava de Unicidade de Reviews)
+
+- **Restrição de Integridade Composta:** Injeção do índice exclusivo `@@unique([userId, spotifyTrackId])` no modelo `Post` do schema do Prisma, impedindo fisicamente que o mesmo usuário registre mais de uma review para a mesma faixa musical.
+- **Resolução de Drift de Schema:** Tratamento e resolução de conflito de histórico local do banco PostgreSQL através de um reset controlado (`prisma migrate reset`), sincronizando perfeitamente a árvore de migrações em ambiente Docker.
+- **Validação Preventiva na API:** Atualização do método `createPost` no `postController.ts` adicionando uma checagem síncrona com `findUnique`. Caso o usuário tente repetir a música, a API barra a transação precocemente e retorna `Status 400 (Bad Request)` com mensagem amigável.
+
+### 2. Frontend & Design System (Tratamento de Erros & Refatoração de UI)
+
+- **Feedback Visual Integrado:** Eliminação dos alertas nativos do navegador (`alert`) no componente do modal de avaliação (`RatingModal`). Substituído por um estado local de erro (`errorMessage`) mapeado em um banner vermelho dinâmico e elegante do Bootstrap (`alert-danger`).
+- **Evolução de Componente (Stories):** Substituição do seletor dropdown tradicional (`<select>`) por uma **grade reativa de botões do tipo Tag/Badge** de gêneros musicais no formulário de criação de Stories.
+  - **Compactação de Interface:** Limitação de altura máxima (`maxHeight: "115px"`) com rolagem sutil para evitar vazamentos na janela modal.
+  - **Controle de Estado:** Realce visual imediato com a cor primária do sistema (`btn-primary`) no gênero selecionado e suporte a desmarcação rápida com clique duplo.
+
+---
+
 ## [19/06/2026] - Funcionalidade: Filtros de Timeline, Ajustes Estruturais , Correções Spotify e Melhorias de Segurança
 
 Refinamento completo da usabilidade da timeline (Feed), integração síncrona com interações de perfis públicos diretamente através de avatares/nomes e correção estrutural e lógica em rotas do catálogo do Spotify.

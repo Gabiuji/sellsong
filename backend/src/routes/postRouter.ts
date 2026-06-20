@@ -4,6 +4,7 @@ import {
   getFeed,
   getMyDiary,
   getPopularItems,
+  getWeeklyRecommendations,
   updatePost,
 } from "../controllers/postController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
@@ -15,6 +16,7 @@ router.get("/", authMiddleware, getFeed);
 
 router.get("/popular", authMiddleware, getPopularItems);
 router.get("/diary", authMiddleware, getMyDiary);
+router.get("/recommendations/weekly", authMiddleware, getWeeklyRecommendations);
 router.put("/:id", authMiddleware, updatePost);
 
 export default router;

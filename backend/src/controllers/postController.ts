@@ -1,4 +1,4 @@
-import { Response } from "express";
+import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { AuthenticatedRequest } from "../middlewares/authMiddleware.js";
 
@@ -43,6 +43,21 @@ export const createPost = async (
       res
         .status(400)
         .json({ error: "A nota deve ser um valor entre 0.5 e 5 estrelas." });
+      return;
+    }
+
+    const existingReview = await prisma.post.findFirst({
+      where: {
+        userId,
+        spotifyTrackId,
+      },
+    });
+
+    if (existingReview) {
+      res.status(400).json({
+        error:
+          "Você já avaliou esta música! Que tal escolher outra para a sua review de hoje?",
+      });
       return;
     }
 
@@ -283,5 +298,56 @@ export const updatePost = async (
   } catch (error) {
     console.error("Erro ao atualizar post:", error);
     res.status(500).json({ error: "Erro interno ao atualizar post." });
+  }
+};
+
+// ==========================================
+// MÚSICAS MAIS RECOMENDADAS (ÚLTIMOS 7 DIAS)
+// ==========================================
+export const getWeeklyRecommendations = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    // Calcula a data limite (exatamente 7 dias atrás)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    // Agrupa as avaliações no banco de dados
+    const topTracks = await prisma.post.groupBy({
+      by: ["spotifyTrackId", "trackName", "artistName", "albumCover"],
+      where: {
+        createdAt: {
+          gte: sevenDaysAgo, // Filtra apenas posts dos últimos 7 dias
+        },
+      },
+      _count: {
+        spotifyTrackId: true, // Conta a quantidade de reviews/votos
+      },
+      _avg: {
+        rating: true, // Calcula a nota média que a comunidade deu
+      },
+      orderBy: {
+        _count: {
+          spotifyTrackId: "desc", // Mais votadas primeiro
+        },
+      },
+      take: 10, // Limita estritamente às 10 músicas mais recomendadas
+    });
+
+    // Formata o retorno para o frontend digerir de forma limpa
+    const formattedRecommendations = topTracks.map((track) => ({
+      spotifyTrackId: track.spotifyTrackId,
+      trackName: track.trackName,
+      artistName: track.artistName,
+      albumCover: track.albumCover,
+      votesCount: track._count.spotifyTrackId,
+      averageRating: track._avg.rating || 0,
+    }));
+
+    res.json(formattedRecommendations);
+  } catch (error) {
+    console.error("Erro ao gerar recomendações semanais:", error);
+    res.status(500).json({ error: "Erro interno ao processar recomendações." });
   }
 };

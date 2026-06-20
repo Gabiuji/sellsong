@@ -19,6 +19,28 @@ interface CreateStoryModalProps {
   onStoryCreated: () => void;
 }
 
+// Gêneros permitidos (sincronizado com o backend em src/controllers/storyController.ts)
+const ALLOWED_GENRES = [
+  "pop",
+  "rock",
+  "hip-hop",
+  "r&b",
+  "jazz",
+  "classical",
+  "electronic",
+  "country",
+  "reggae",
+  "blues",
+  "indie",
+  "metal",
+  "folk",
+  "soul",
+  "funk",
+  "latin",
+  "alternative",
+  "outros",
+] as const;
+
 export default function CreateStoryModal({
   isOpen,
   onClose,
@@ -238,17 +260,37 @@ export default function CreateStoryModal({
                 </div>
 
                 <div>
-                  <label className="form-label xx-small fw-bold uppercase text-muted mb-1">
+                  <label className="form-label xx-small fw-bold uppercase text-muted mb-2 tracking-wider d-block">
                     Gênero Musical
                   </label>
-                  <input
-                    type="text"
-                    className="form-control form-control-sm rounded-3 shadow-none"
-                    placeholder="Ex: Synthpop, Indie Rock, MPB..."
-                    maxLength={30}
-                    value={genreTag}
-                    onChange={(e) => setGenreTag(e.target.value)}
-                  />
+
+                  {/* CONTAINER EM GRID/FLEX PARA COMPACTAR OS BOTÕES LADO A LADO */}
+                  <div
+                    className="d-flex flex-wrap gap-1.5 overflow-y-auto pe-1"
+                    style={{ maxHeight: "115px" }}
+                  >
+                    {ALLOWED_GENRES.map((genre) => {
+                      const isSelected = genreTag === genre;
+                      return (
+                        <button
+                          key={genre}
+                          type="button"
+                          onClick={() => setGenreTag(isSelected ? "" : genre)} // Se clicar no já selecionado, desmarca
+                          className={`btn btn-xs rounded-pill fw-semibold border transition-all text-capitalize px-2.5 py-1 ${
+                            isSelected
+                              ? "btn-primary border-primary text-white shadow-sm" // Destacado (Roxo/Azul do seu sistema)
+                              : "bg-white bg-opacity-5 text-white-50 border-secondary border-opacity-10 hover-bg-purple-subtle" // Neutro escuro
+                          }`}
+                          style={{
+                            fontSize: "0.7rem",
+                            letterSpacing: "0.3px",
+                          }}
+                        >
+                          {genre}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div>

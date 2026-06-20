@@ -10,6 +10,7 @@ import UserSearch from "./components/UserSearch";
 import Feed from "./views/Feed";
 import Diary from "./views/Diary";
 import StoryPanel from "./components/StoryPanel";
+import Recommendations from "./views/Recommendations";
 
 interface User {
   id: number;
@@ -22,7 +23,7 @@ function App() {
 
   // Estado que controla o que aparece na coluna do meio: "feed" ou "settings"
   const [activeTab, setActiveTab] = useState<
-    "feed" | "settings" | "users" | "diary"
+    "feed" | "settings" | "users" | "diary" | "recommendations"
   >("feed");
 
   const [user, setUser] = useState<User | null>(() => {
@@ -119,6 +120,18 @@ function App() {
                 >
                   <i className="bi bi-journal-album me-1"></i> Meu Diário
                 </button>
+
+                <button
+                  className={`btn btn-sm rounded-pill px-3 fw-semibold me-2 ${
+                    activeTab === "recommendations"
+                      ? "btn-primary"
+                      : "btn-outline-secondary"
+                  }`}
+                  onClick={() => setActiveTab("recommendations")}
+                >
+                  <i className="bi bi-fire me-1"></i> Recomendações
+                </button>
+
                 <button
                   className="btn btn-sm btn-outline-danger rounded-pill px-3 fw-semibold"
                   onClick={() => setShowLogoutModal(true)}
@@ -156,6 +169,10 @@ function App() {
                 ) : activeTab === "users" ? (
                   <div className="card border-0 shadow-sm rounded-4 bg-white p-4">
                     <UserSearch />
+                  </div>
+                ) : activeTab === "recommendations" ? (
+                  <div className="card border-0 shadow-sm rounded-4 bg-white p-4">
+                    <Recommendations />
                   </div>
                 ) : (
                   /* TELA DO DIÁRIO PESSOAL */

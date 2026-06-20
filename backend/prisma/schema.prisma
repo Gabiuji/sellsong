@@ -39,6 +39,9 @@ model Post {
   // Chave estrangeira ligando o post ao autor
   userId        Int
   author        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, spotifyTrackId])
+  @@index([userId])
 }
 
 // MODELO DE SEGUIDORES (Tabela intermediária para a rede social)
