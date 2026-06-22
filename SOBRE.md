@@ -17,7 +17,7 @@ A proposta central do aplicativo é permitir que os usuários façam **recomenda
 
 ---
 
-## Stack Tecnológica & Ferramentas
+## Stack Tecnológica e Ferramentas
 
 O projeto adota uma arquitetura descentralizada (Decoupled Architecture), separando completamente as responsabilidades do ecossistema do cliente (Frontend) e do servidor (Backend).
 
@@ -32,7 +32,7 @@ O projeto adota uma arquitetura descentralizada (Decoupled Architecture), separa
 - **Node.js & Express:** Ambiente de execução e micro-framework ágil para a construção da API RESTful que gerencia as regras de negócio, autenticação e rotas.
 - **Prisma ORM (Versão 7):** Object-Relational Mapping de última geração para modelagem das tabelas do banco de dados, geração automatizada de tipos TypeScript e gerenciamento estruturado de migrações (`migrations`).
 
-### Infraestrutura & Banco de Dados
+### Infraestrutura e Banco de Dados
 
 - **PostgreSQL:** Banco de dados relacional robusto, ideal para lidar com a consistência de dados exigida pelas relações complexas de amizades e feeds.
 - **Docker & Docker Compose:** Utilizado para conteinerizar o ambiente de banco de dados, garantindo que o projeto rode com as mesmas configurações em qualquer máquina de forma isolada e previsível.

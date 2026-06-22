@@ -1,6 +1,33 @@
-# 📈 Diário de Progresso — SellSong
+# Diário de Progresso — SellSong
 
 Este arquivo registra a evolução técnica, correções de arquitetura e funcionalidades implementadas no **SellSong**.
+
+---
+
+## Funcionalidades Atuais no Sistema
+
+- **Linha do Tempo e Rede Social (Feed)**
+  - **Timeline Inteligente: **Exibição em tempo real das avaliações feitas por você e pelas pessoas que você segue, organizadas estritamente por ordem cronológica decrescente.
+  - **Filtro Seletivo Dinâmico:**Um menu dropdown customizado no topo da página ("Todas as reviews") que permite filtrar instantaneamente a timeline para exibir apenas as últimas 12 postagens de um amigo específico que você segue.
+  - **Modais de Perfis Públicos:**Clique interativo no avatar ou no nome de qualquer usuário no feed para abrir um modal flutuante (UserProfileModal) contendo os detalhes públicos daquela pessoa, sem tirar você da sua navegação atual.
+- **Painel de Usuário**
+  - **Métricas em Tempo Real:** Bloco lateral com contadores síncronos de Reviews, Seguidores e Seguindo.
+  - **Modais de Conexões Sociais:** O clique em Seguidores ou Seguindo abre uma janela interna estilizada com a listagem das pessoas conectadas a você.
+- **Integração com Catálogo Spotify e Busca (Funil de Drill-down)**
+  - **Busca Global Filtrada:** Input de pesquisa capaz de consultar o catálogo do Spotify em tempo real, chaveando os resultados entre `Músicas`, `Álbuns` ou `Artistas`.
+  - **Tratamento de Dados Defensivo:** Mapeamento seguro que injeta capas de álbuns genéricas (placeholders) ou gêneros padrão ("Musical") caso os dados vindos da API externa estejam incompletos, blindando o front-end contra quebras.
+  - **Navegação em Profundidade (Drill-down):**
+    - Ao pesquisar e clicar em um Álbum, o sistema limpa a tela e abre a listagem interna de todas as suas faixas (herdando a capa do álbum pai).
+    - Ao pesquisar e clicar em um Artista, o sistema busca dinamicamente no backend a coleção de álbuns e singles dele (resolvido o bug do limite de parâmetros).
+- **Sistema de Avaliações e Validação (RatingModal)**
+  - **Notas estilo Letterboxd:** Sistema de avaliação fracionada permitindo notas de 0.5 a 5 estrelas.
+  - **Trava Anticorrupção de Ranking (@@unique):** Restrição composta no banco de dados e validação no controlador que impede fisicamente que um usuário avalie a mesma música mais de uma vez, protegendo a integridade dos dados e rankings da plataforma.
+  - **Erros de Formulário Embutidos:** Alertas de validação de dados duplicados renderizados diretamente dentro do modal de nota através de um banner vermelho discreto, extinguindo os antigos pop-ups alert() do navegador.
+- **Stories**
+  - **Publicação de Momentos:** Espaço para compartilhamento de músicas ou pensamentos rápidos com limite textual de 150 caracteres.
+  - **Seleção por Tags Clicáveis:** Substituição do dropdown antigo por uma grade moderna e flexível de botões de gêneros musicais (Pop, Rock, Hip-hop, etc.) que se autoajustam à tela, limitados por rolagem sutil e com destaque visual para o gênero selecionado.
+- **Recomendações Semanais**
+  - **Algoritmo de Engajamento:** Endpoint integrado que filtra as postagens dos últimos 7 dias, agrupa-as pelo ID da música e calcula a média geométrica das notas dadas pela comunidade.
 
 ---
 
@@ -8,13 +35,13 @@ Este arquivo registra a evolução técnica, correções de arquitetura e funcio
 
 Sessão focada em usabilidade avançada, correção de quebras de API externa, segurança de integridade de dados e redesign de componentes do funil de interações do SellSong.
 
-### 1. Backend & Banco de Dados (Trava de Unicidade de Reviews)
+### Backend & Banco de Dados (Trava de Unicidade de Reviews)
 
 - **Restrição de Integridade Composta:** Injeção do índice exclusivo `@@unique([userId, spotifyTrackId])` no modelo `Post` do schema do Prisma, impedindo fisicamente que o mesmo usuário registre mais de uma review para a mesma faixa musical.
 - **Resolução de Drift de Schema:** Tratamento e resolução de conflito de histórico local do banco PostgreSQL através de um reset controlado (`prisma migrate reset`), sincronizando perfeitamente a árvore de migrações em ambiente Docker.
 - **Validação Preventiva na API:** Atualização do método `createPost` no `postController.ts` adicionando uma checagem síncrona com `findUnique`. Caso o usuário tente repetir a música, a API barra a transação precocemente e retorna `Status 400 (Bad Request)` com mensagem amigável.
 
-### 2. Frontend & Design System (Tratamento de Erros & Refatoração de UI)
+### Frontend & Design System (Tratamento de Erros & Refatoração de UI)
 
 - **Feedback Visual Integrado:** Eliminação dos alertas nativos do navegador (`alert`) no componente do modal de avaliação (`RatingModal`). Substituído por um estado local de erro (`errorMessage`) mapeado em um banner vermelho dinâmico e elegante do Bootstrap (`alert-danger`).
 - **Evolução de Componente (Stories):** Substituição do seletor dropdown tradicional (`<select>`) por uma **grade reativa de botões do tipo Tag/Badge** de gêneros musicais no formulário de criação de Stories.
@@ -29,7 +56,7 @@ Refinamento completo da usabilidade da timeline (Feed), integração síncrona c
 
 ## Modificações Realizadas
 
-### 1. Frontend & UX (Feed & ProfileWidget)
+### Frontend & UX (Feed & ProfileWidget)
 
 - **Filtro Seletivo Controlado:** Implementação de um dropdown reativo controlado nativamente por estados do React (`dropdownOpen`), eliminando a dependência de scripts externos do Bootstrap. Agora é possível filtrar a timeline para ver "Todas as reviews" ou selecionar um amigo específico.
 - **Limite e Ordenação Estrita:** Fixado o teto de exibição do feed em no máximo **12 reviews** simultâneas, devidamente ordenadas por data decrescente (mais recentes primeiro).
@@ -39,13 +66,13 @@ Refinamento completo da usabilidade da timeline (Feed), integração síncrona c
   - **Carrossel de Abas (Paginação):** Implementada paginação em lote automática limitando a exibição a 10 usuários por vez, gerando abas dinâmicas (`Pág. 1`, `Pág. 2`) caso a lista de conexões exceda o limite.
 - **Otimização de Renderização:** Realocação do `<UserProfileModal />` para fora dos loops de renderização do `map` no feed, saneando instâncias paralelas duplicadas e melhorando a performance geral do DOM.
 
-### 2. Backend (Correções no SpotifyController)
+### Backend (Correções no SpotifyController)
 
 - **Interpolação de Strings Fixada:** Correção de sintaxe em _Template Literals_ na função `getArtistAlbums` onde o caractere `$` estava ausente na passagem do ID da rota (`{id}` para `${id}`).
 - **Sanamento de Payload Incompatível:** Remoção do parâmetro `limit: 12` na requisição de álbuns de artistas que estava disparando erro de validação severo (`Status 400 - Invalid limit`) pelo servidor proxy local.
 - **Mapeamento Defensivo:** Injeção de cláusula de guarda e encadeamento opcional (`?.`) na captura de arrays de imagens de álbuns, evitando falhas catastróficas de ponteiro nulo (Erro 500).
 
-### 3. **Gerenciamento de Variáveis de Ambiente**
+### **Gerenciamento de Variáveis de Ambiente**
 
 - ✅ Criado `.env.example` com template de variáveis
 - ✅ Atualizado `backend/.env` com variáveis seguras
@@ -58,33 +85,33 @@ Refinamento completo da usabilidade da timeline (Feed), integração síncrona c
 - `backend/.env` - Arquivo local com valores
 - `backend/src/index.ts` - Validação de JWT_SECRET
 
----
-
-### 4. **Segurança HTTP - Helmet**
+### **Segurança HTTP - Helmet**
 
 - ✅ Adicionado `helmet` para headers de segurança
 - ✅ Protege contra: XSS, Clickjacking, MIME-type sniffing, etc.
 
 ---
 
-### 5. **Rate Limiting**
+### **Rate Limiting**
 
 - ✅ Adicionado `express-rate-limit` para proteção contra brute force
 - ✅ Limite padrão: 100 requisições por 15 minutos
 - ✅ Skip no health check
 - ✅ Configurável via `.env`
 
+---
+
 ## [18/06/2026] - Músicas favoritas (top 4) e perfil público
 
 A mecânica de destaques inspirada no Letterboxd foi completamente acoplada ao ecossistema do SellSong, permitindo personalização de perfil e portabilidade de dados para visualização entre usuários.
 
-### 1. Backend (Prisma, MySQL & Controladores)
+### Backend (Prisma, MySQL & Controladores)
 
 - **Persistência Sólida:** Lógica baseada em `Prisma` utilizando `@@unique([userId, position])` para garantir que cada usuário tenha apenas uma música por slot (1 a 4).
 - **Upsert Inteligente:** Criação do endpoint `PUT /api/top-four` utilizando a operação `upsert` do Prisma, que atualiza ou cria o registro de forma atômica no banco de dados.
 - **Dados Consolidados:** Desenvolvimento do endpoint `GET /api/users/public/:id` para entregar dados agregados de perfis de terceiros, computando totais de seguidores e seguindo direto via query de agregação (`_count`).
 
-### 2. Frontend (React, TypeScript & Design System)
+### Frontend (React, TypeScript & Design System)
 
 - **Componente Reutilizável (`TopFourPanel`):** * Criado um grid dinâmico que detecta a propriedade `userId` para discernir se o visualizador é o dono do perfil (ativando o modo edição) ou um visitante (ativando o modo *read-only\*).
   - Correção na URL do Axios injetando os parâmetros via Query String com `encodeURIComponent` para sanar a listagem vazia na busca do Spotify.
@@ -98,8 +125,6 @@ A mecânica de destaques inspirada no Letterboxd foi completamente acoplada ao e
 ## [17/06/2026] - Stories de recomendações musicais
 
 A funcionalidade de recomendações diárias estilo Stories foi totalmente implementada, integrada ao ecossistema do Spotify e blindada contra falhas de restrição de catálogo através de um fallback de redirecionamento.
-
-## Modificações Realizadas
 
 ### Backend & Persistência (Node.js, Prisma, MySQL)
 
@@ -117,6 +142,8 @@ A funcionalidade de recomendações diárias estilo Stories foi totalmente imple
   - Atualizada a interface `Track` para comportar a propriedade `spotifyUrl`.
   - Ajustado o payload de envio no método `handlePublishStory` para encaminhar corretamente as referências ao backend.
 
+---
+
 ## [16/06/2026] - Ajustes e Nova Identidade Visual
 
 ## O que foi implementado:
@@ -125,6 +152,8 @@ A funcionalidade de recomendações diárias estilo Stories foi totalmente imple
 - **Sobreposição Estendida do Bootstrap (`App.css`):** Mapeamento e conversão automática de classes utilitárias nativas do Bootstrap (como `.card`, `.bg-white`, `.bg-light` e `.text-dark`) para se adaptarem perfeitamente à nova paleta escura sem quebras de layout.
 - **Refatoração Visual dos Modais:** Ajuste fino na classe `.modal-content` e componentes internos. Correção de contraste em títulos, botões de ação e campos de texto (`textarea`), solucionando problemas de invisibilidade de elementos em fundos claros e integrando-os ao tema escuro.
 - **Tipografia e Utilitários:** Inclusão de classes auxiliares microtipográficas (`xx-small`, `x-small`) e comportamentais para truncamento de texto longo e efeitos de elevação em interações (`hover-shadow`).
+
+---
 
 ## [15/06/2026] - Refatoração do Feed, Sistema de Ranking e Central de Conexões
 
@@ -139,6 +168,8 @@ A funcionalidade de recomendações diárias estilo Stories foi totalmente imple
 
 - Resolução de alertas do React Linter eliminando chamadas síncronas de `setState` dentro de `useEffect` (isolas em escopos assíncronos internos).
 - Limpeza de variáveis, imports não utilizados e resolução de conflitos de classes duplicadas no Bootstrap.
+
+---
 
 ## [14/06/2026] - Estrutura do perfil, função de Follow e Friends, Página de configurações do usuário
 
@@ -156,6 +187,8 @@ A funcionalidade de recomendações diárias estilo Stories foi totalmente imple
 - **Navegação Dinâmica no Dashboard:** Expandido o chaveamento de abas (`activeTab`) na linha de controle central do `App.tsx` para comportar a visualização de busca musical, configurações do perfil e painel social sem recarregar a página.
 - **Sistema de Amizades Estilo Letterboxd:** Desenvolvimento da view `<UserSearch />` capaz de identificar interações mútuas e renderizar de forma condicional o status do relacionamento (botão "+ Seguir", botão cinza "Seguindo" ou o badge verde " Amigos").
 
+---
+
 ## [13/06/2026] - Ajustes de busca da API do Spotify, Filtro de busca e Atualização da interface
 
 ### Backend (Integração Spotify & Docker)
@@ -171,6 +204,8 @@ A funcionalidade de recomendações diárias estilo Stories foi totalmente imple
 - **Segurança e Persistência:** Ajustada a captura de credenciais no fluxo do Axios para ler a chave criptografada correta do Local Storage (`@SellSong:token`), sanando os erros `401 Unauthorized` na comunicação com o backend.
 - **Navegação em Funil (Drill-down):** Criação de estados dinâmicos que permitem ao usuário navegar de forma fluida: clicar em um Artista ➔ Ver seus Álbuns ➔ Ver suas Músicas ➔ Avaliar com notas e resenhas.
 
+---
+
 ## [12/06/2026] — Sistema de Crítica Estilo Letterboxd (Meias-Estrelas) e Alinhamento de Banco
 
 Dia focado na implementação da mecânica core de avaliações da rede social, refinando a precisão das notas e superando gargalos de sincronismo entre contêineres e o ORM.
@@ -181,10 +216,7 @@ Dia focado na implementação da mecânica core de avaliações da rede social, 
 - **Migração para Dados Decimais (Prisma + Postgres):** Alteração do modelo `Post` no banco de dados mudando a coluna `rating` de `Int` para `Float` para suportar notas quebradas sem perda de precisão.
 - **Módulo de Publicação Visual Concluído:** Integração bem-sucedida entre o clique no card do Spotify, abertura do Modal dinâmico com blur de fundo e disparo do payload para a rota `POST /api/posts`.
 
-### Desafios Superados & Decisões de Arquitetura:
-
-1. **Resolução de Schema Desalinhado (Erro 400):** Identificação e correção de divergência de nomenclatura onde o controller tentava persistir o argumento inválido `content` em vez da chave mapeada `review`.
-2. **Sincronização de Estado Pós-Clean (Erro P2021 e P2003):** Resolução de quebra de integridade referencial (_Foreign Key constraint_) forçando a execução do `prisma db push` após limpeza de volumes do Docker e expurgando tokens obsoletos do cache local via reautenticação limpa.
+---
 
 ## [11/06/2026] — Inicialização e Dockerização Completa do Frontend (React + Vite)
 
@@ -213,11 +245,6 @@ O foco deste dia foi descentralizar a execução híbrida da aplicação, migran
 - **Conteinerização Completa do Backend:** Criação do `Dockerfile` multiestágio baseado em imagens Alpine do Node 24 para isolamento total da API Express.
 - **Orquestração Segura via Docker Compose:** Configuração da leitura de variáveis de ambiente dinâmicas usando `env_file`.
 
-### Desafios Superados & Decisões de Arquitetura:
-
-1. **Resolução de Escopo de Rede Interna:** Correção do erro clássico `P1001` substituindo a referência de `localhost` pelo nome lógico do serviço do banco de dados (`postgres_db`) no `.env`.
-2. **Correção de Rotas de API:** Identificação de um erro de 404 de rotas no Express decorrente de incompatibilidade de strings de caminhos literais (plural vs singular) no mapeamento do roteador em `index.ts`.
-
 ---
 
 ## [09/06/2026] — Segurança, Autenticação JWT e Integração com Spotify
@@ -229,12 +256,3 @@ Transformação da infraestrutura básica em uma API de rede social funcional, e
 ## [08/06/2026] — Fundação do Ecossistema & Integração de Banco de Dados
 
 Nesta etapa inicial, o foco total foi estabelecer uma infraestrutura moderna, segura e com tipagem estática ponta a ponta para o Backend da aplicação usando Docker, PostgreSQL, Express e Prisma v6.
-
----
-
-## Próximos Passos (Backlog)
-
-- [x] **Tela de Login / Cadastro (`views/Auth.tsx`):** Criação do formulário para autenticar o usuário, receber o Token JWT e salvá-lo no `localStorage`. (concluído em 12/06/2026)
-- [x] **Tela de Busca Musical (`views/Search.tsx`):** Componentização da barra de pesquisa consumindo o catálogo do Spotify através do nosso Axios. (concluído em 12/06/2026)
-- [x] **Módulo de Publicação Visual:** Modal ou formulário para o usuário escolher uma música buscada, atribuir uma nota em estrelas (1 a 5) e digitar uma resenha.
-- [ ] **Feed Global e Perfil:** Criação das telas para exibição das postagens e gerenciamento de seguidores.
