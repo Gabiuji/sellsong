@@ -43,6 +43,7 @@ export const searchSpotify = async (
       params: {
         q: String(q),
         type: searchType,
+        limit: 10, // Limite de resultados para não sobrecarregar a resposta
       },
     });
 

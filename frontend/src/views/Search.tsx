@@ -297,10 +297,10 @@ export default function Search({ onPostCreated }: SearchProps) {
                   style={{ width: "56px", height: "56px" }}
                 />
                 <div className="text-truncate grow">
-                  <span className="fw-bold text-dark d-block text-truncate small mb-0">
+                  <span className="fw-bold text-dark d-block small text-truncate">
                     {subItem.name}
                   </span>
-                  <span className="text-muted x-small text-truncate d-block">
+                  <span className="text-muted xx-small d-block text-truncate">
                     {viewMode === "album-details"
                       ? subItem.artists || selectedParentName
                       : `Lançamento: ${subItem.releaseDate}`}
