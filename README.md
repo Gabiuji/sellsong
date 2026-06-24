@@ -7,7 +7,7 @@ Este arquivo registra a evolução técnica, correções de arquitetura e funcio
 ## Funcionalidades Atuais no Sistema
 
 - **Linha do Tempo e Rede Social (Feed)**
-  - **Timeline Inteligente: **Exibição em tempo real das avaliações feitas por você e pelas pessoas que você segue, organizadas estritamente por ordem cronológica decrescente.
+  - **Timeline Inteligente:** Exibição em tempo real das avaliações feitas por você e pelas pessoas que você segue, organizadas estritamente por ordem cronológica decrescente.
   - **Filtro Seletivo Dinâmico:**Um menu dropdown customizado no topo da página ("Todas as reviews") que permite filtrar instantaneamente a timeline para exibir apenas as últimas 12 postagens de um amigo específico que você segue.
   - **Modais de Perfis Públicos:**Clique interativo no avatar ou no nome de qualquer usuário no feed para abrir um modal flutuante (UserProfileModal) contendo os detalhes públicos daquela pessoa, sem tirar você da sua navegação atual.
 - **Painel de Usuário**
